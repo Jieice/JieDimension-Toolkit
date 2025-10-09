@@ -21,7 +21,7 @@ class MainWindow(ctk.CTk):
         
         # 窗口配置
         self.title("JieDimension Toolkit v1.17.2 - AI驱动的多平台内容发布工具")
-        self.geometry("1400x900")
+        self.geometry("1280x800")  # 调整为更通用的大小
         
         # 居中显示
         self._center_window()
@@ -53,8 +53,8 @@ class MainWindow(ctk.CTk):
         screen_height = self.winfo_screenheight()
         
         # 获取窗口尺寸
-        window_width = 1400
-        window_height = 900
+        window_width = 1280
+        window_height = 800
         
         # 计算居中位置
         x = (screen_width - window_width) // 2
