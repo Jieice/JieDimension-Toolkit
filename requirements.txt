@@ -1,0 +1,56 @@
+# JieDimension Toolkit - Dependencies
+# Python 3.11+
+
+# UI Framework
+customtkinter>=5.2.0
+pillow>=10.0.0
+packaging>=23.0
+
+# Database
+aiosqlite>=0.19.0
+
+# Data Processing
+pandas>=2.0.0
+openpyxl>=3.1.0
+
+# HTTP Requests
+requests>=2.31.0
+aiohttp>=3.9.0
+
+# Utils
+python-dotenv>=1.0.0
+cryptography>=41.0.0
+
+# Task Scheduling
+apscheduler>=3.10.0
+
+# AI APIs
+ollama>=0.1.0                    # For local Ollama models
+httpx>=0.25.0                   # For async HTTP requests to Ollama
+google-generativeai>=0.3.0      # For Gemini API (Free 60 req/min)
+
+# AI APIs (Optional - Install as needed)
+# cohere                        # For Cohere API
+
+# Data Visualization (Day 6)
+matplotlib>=3.8.0              # For static charts
+plotly>=5.18.0                 # For interactive charts
+
+# Additional AI APIs (Day 7)
+# Claude API - Uses httpx (already included above)
+# 文心一言 API - Uses httpx (already included above)
+# Note: Both Claude and ERNIE use REST APIs via httpx, no additional packages needed
+
+# Browser Automation & API Integration (Day 12)
+playwright>=1.40.0              # For browser automation (xianyu, etc.)
+aiofiles>=23.2.0                # For async file operations
+# Install Playwright browsers after installing the package:
+# playwright install chromium
+
+# Testing (Day 19)
+pytest>=7.4.0                   # For advanced testing
+pytest-asyncio>=0.21.0          # For async test support
+
+# Text Processing (Day 9 - Zhihu)
+jieba>=0.42.0                   # For Chinese text segmentation
+

@@ -1,0 +1,8 @@
+{
+  "theme": "dark",
+  "color_theme": "blue",
+  "ollama_url": "http://localhost:11434",
+  "ai_model": "deepseek-r1:1.5b",
+  "temperature": 0.7,
+  "db_path": "data/database.db"
+}
