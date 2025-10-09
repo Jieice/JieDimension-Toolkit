@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.17.1] - 2025-10-09
 
-### 🎉 Day 25 - 测试优化和热更新系统
+### 🎉 Day 25 - 测试优化、热更新系统、UI体验优化
 
 #### Added - 🔄 热更新系统
 - ✅ **完整的自动更新流程** (`utils/updater.py` 扩展到432行)
@@ -59,10 +59,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 📝 更新README热更新功能说明
 - 📝 更新CHANGELOG.md
 
+#### UI/UX Improvements - 🎨 用户体验优化
+- ✅ **修复滚动撕裂** - 所有滚动界面添加平滑滚动算法
+  - settings_window.py优化
+  - dashboard.py优化
+  - publish_tab.py优化
+- ✅ **按钮点击反馈** - 生成按钮添加加载状态
+  - 点击后按钮变灰+显示"生成中..."
+  - 完成后自动恢复+显示结果
+  - 提升操作感知
+- ✅ **左下角迷你仪表盘** - 侧边栏底部常驻统计
+  - 显示今日生成数、成功率
+  - 实时更新数据
+  - 点击展开完整仪表盘
+- ✅ **菜单重组** - 分类更清晰
+  - 📝 文章内容（小红书、知乎、B站、批量）
+  - 📦 商品发布（闲鱼、管理）
+  - 🔧 工具（浏览器、API、设置）
+- ✅ **输入记忆系统** - 自动保存/加载
+  - PreferenceManager管理器（180行）
+  - 记住上次输入的主题、关键词、风格
+  - 提升重复操作效率
+- ✅ **Tooltip提示** - 悬停显示帮助
+  - ToolTip组件（100行）
+  - 关键功能添加说明
+  - 降低学习成本
+
 #### Performance
 - ⚡ 测试执行时间: 20-30秒
 - ⚡ 测试稳定性: 优秀
 - ⚡ 热更新速度: 取决于网络（自动下载）
+- ⚡ 滚动流畅性: 大幅提升（无撕裂）
 
 #### Features
 - 🔄 **热更新系统**
@@ -74,6 +101,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 📦 **发布流程简化**
   - 开发者：打包→发布到GitHub
   - 用户：点击更新→自动完成
+- 🎨 **用户体验提升**
+  - 平滑滚动、点击反馈
+  - 迷你仪表盘、输入记忆
+  - 菜单分组、操作引导
+
+#### Code Changes
+- 新增: utils/preference_manager.py (180行)
+- 新增: ui/tooltip.py (100行)
+- 修改: ui/main_window.py (+80行)
+- 修改: ui/settings_window.py (+18行)
+- 修改: ui/dashboard.py (+16行)
+- 修改: plugins/xiaohongshu/ui/xiaohongshu_tab.py (+45行)
+- 修改: plugins/xianyu/ui/publish_tab.py (+16行)
 
 ---
 
