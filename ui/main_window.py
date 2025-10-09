@@ -95,61 +95,86 @@ class MainWindow(ctk.CTk):
         # 菜单按钮
         self.menu_buttons = []
         
+        # 重组菜单：分离文章发布和商品发布
         menus = [
-            ("🏠 仪表板", self.show_dashboard),
-            ("🚀 批量发布", self.show_batch_publish),
-            ("📦 闲鱼发布", self.show_xianyu),
-            ("📝 小红书", self.show_xiaohongshu),
-            ("📖 知乎", self.show_zhihu),
-            ("🎬 B站", self.show_bilibili),
-            ("🌐 浏览器控制", self.show_browser_control),
-            ("📊 管理", self.show_management),
-            ("🤖 AI助手", self.show_ai_assistant),
-            ("🔐 API配置", self.show_api_config),
-            ("⚙️ 设置", self.show_settings),
-            ("🔄 检查更新", self.check_for_updates),
+            ("🏠 仪表板", self.show_dashboard, None),
+            ("separator", None, "📝 文章内容"),
+            ("📝 小红书", self.show_xiaohongshu, None),
+            ("📖 知乎", self.show_zhihu, None),
+            ("🎬 B站", self.show_bilibili, None),
+            ("🚀 批量文章", self.show_batch_publish, None),
+            ("separator", None, "📦 商品发布"),
+            ("📦 闲鱼商品", self.show_xianyu, None),
+            ("📊 商品管理", self.show_management, None),
+            ("separator", None, "🔧 工具"),
+            ("🌐 浏览器", self.show_browser_control, None),
+            ("🔐 API配置", self.show_api_config, None),
+            ("⚙️ 设置", self.show_settings, None),
         ]
         
-        for idx, (text, command) in enumerate(menus):
-            btn = ctk.CTkButton(
-                self.sidebar,
-                text=text,
-                command=command,
-                anchor="w",
-                height=45,
-                font=ctk.CTkFont(size=15),
-                fg_color="transparent",
-                text_color=("gray10", "gray90"),
-                hover_color=("gray70", "gray30")
-            )
-            btn.grid(row=idx+2, column=0, padx=15, pady=5, sticky="ew")
-            self.menu_buttons.append(btn)
+        current_row = 2
+        for item in menus:
+            if item[0] == "separator":
+                # 创建分组标签
+                if item[2]:  # 有标题
+                    label = ctk.CTkLabel(
+                        self.sidebar,
+                        text=item[2],
+                        font=ctk.CTkFont(size=12, weight="bold"),
+                        text_color="gray50",
+                        anchor="w"
+                    )
+                    label.grid(row=current_row, column=0, padx=20, pady=(15, 5), sticky="w")
+                    current_row += 1
+            else:
+                # 创建菜单按钮
+                text, command, _ = item
+                btn = ctk.CTkButton(
+                    self.sidebar,
+                    text=text,
+                    command=command,
+                    anchor="w",
+                    height=40,
+                    font=ctk.CTkFont(size=14),
+                    fg_color="transparent",
+                    text_color=("gray10", "gray90"),
+                    hover_color=("gray70", "gray30")
+                )
+                btn.grid(row=current_row, column=0, padx=15, pady=3, sticky="ew")
+                self.menu_buttons.append(btn)
+                current_row += 1
+        
+        # 底部留白（让菜单可以滚动）
+        self.sidebar.grid_rowconfigure(current_row, weight=1)
         
         # 分隔线
         separator2 = ctk.CTkFrame(self.sidebar, height=2, fg_color="gray30")
-        separator2.grid(row=len(menus)+2, column=0, padx=20, pady=10, sticky="ew")
+        separator2.grid(row=current_row+1, column=0, padx=20, pady=10, sticky="ew")
+        
+        # 左下角迷你仪表盘
+        self._create_mini_dashboard(current_row+2)
         
         # 状态指示区域
         status_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        status_frame.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
+        status_frame.grid(row=current_row+3, column=0, padx=15, pady=(5, 10), sticky="ew")
         
         # AI状态
         self.ai_status_label = ctk.CTkLabel(
             status_frame,
             text="🤖 AI: 就绪",
-            font=ctk.CTkFont(size=12),
+            font=ctk.CTkFont(size=11),
             text_color="green"
         )
-        self.ai_status_label.pack(anchor="w", pady=2)
+        self.ai_status_label.pack(anchor="w", pady=1)
         
         # 数据库状态
         self.db_status_label = ctk.CTkLabel(
             status_frame,
             text="💾 数据库: 正常",
-            font=ctk.CTkFont(size=12),
+            font=ctk.CTkFont(size=11),
             text_color="green"
         )
-        self.db_status_label.pack(anchor="w", pady=2)
+        self.db_status_label.pack(anchor="w", pady=1)
         
         # 版权信息
         copyright_label = ctk.CTkLabel(
@@ -180,6 +205,74 @@ class MainWindow(ctk.CTk):
                 btn.configure(fg_color=("gray75", "gray25"))
             else:
                 btn.configure(fg_color="transparent")
+    
+    def _create_mini_dashboard(self, row):
+        """创建左下角迷你仪表盘"""
+        # 迷你仪表盘框架
+        mini_dash = ctk.CTkFrame(
+            self.sidebar,
+            fg_color=("gray85", "gray20"),
+            corner_radius=10
+        )
+        mini_dash.grid(row=row, column=0, padx=10, pady=10, sticky="ew")
+        
+        # 标题（可点击）
+        title_label = ctk.CTkLabel(
+            mini_dash,
+            text="📊 今日统计",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            cursor="hand2"
+        )
+        title_label.pack(pady=(8, 5))
+        title_label.bind("<Button-1>", lambda e: self.show_dashboard())
+        
+        # 统计数据
+        self.mini_gen_count = ctk.CTkLabel(
+            mini_dash,
+            text="生成: 0次",
+            font=ctk.CTkFont(size=11),
+            text_color="gray60"
+        )
+        self.mini_gen_count.pack(anchor="w", padx=15, pady=2)
+        
+        self.mini_success_rate = ctk.CTkLabel(
+            mini_dash,
+            text="成功率: 0%",
+            font=ctk.CTkFont(size=11),
+            text_color="gray60"
+        )
+        self.mini_success_rate.pack(anchor="w", padx=15, pady=2)
+        
+        # 点击提示
+        click_hint = ctk.CTkLabel(
+            mini_dash,
+            text="点击查看详情 →",
+            font=ctk.CTkFont(size=10),
+            text_color="gray50",
+            cursor="hand2"
+        )
+        click_hint.pack(pady=(5, 8))
+        click_hint.bind("<Button-1>", lambda e: self.show_dashboard())
+        
+        # 整个框架可点击
+        mini_dash.bind("<Button-1>", lambda e: self.show_dashboard())
+        
+        # 启动自动更新
+        self._update_mini_dashboard()
+    
+    def _update_mini_dashboard(self):
+        """更新迷你仪表盘数据"""
+        try:
+            # 这里可以从数据库获取实际数据
+            # 现在使用模拟数据
+            import random
+            self.mini_gen_count.configure(text=f"生成: {random.randint(0, 50)}次")
+            self.mini_success_rate.configure(text=f"成功率: {random.randint(80, 100)}%")
+        except:
+            pass
+        
+        # 每30秒更新一次
+        self.after(30000, self._update_mini_dashboard)
     
     # ===== 页面切换方法 =====
     

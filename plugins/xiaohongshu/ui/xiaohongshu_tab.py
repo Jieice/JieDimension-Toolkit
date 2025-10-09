@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from plugins.xiaohongshu.title_generator import XiaohongshuTitleGenerator, TitleStyle
 from plugins.xiaohongshu.emoji_optimizer import EmojiOptimizer
 from plugins.xiaohongshu.topic_recommender import TopicTagRecommender
+from utils.preference_manager import get_preference_manager
 
 
 class XiaohongshuTab(ctk.CTkFrame):
@@ -30,8 +31,14 @@ class XiaohongshuTab(ctk.CTkFrame):
         self.emoji_optimizer = EmojiOptimizer()
         self.topic_recommender = None
         
+        # 偏好管理器
+        self.pref_manager = get_preference_manager()
+        
         # 创建界面
         self._create_ui()
+        
+        # 加载上次输入
+        self._load_last_input()
     
     def _create_ui(self):
         """创建用户界面"""
@@ -222,6 +229,16 @@ class XiaohongshuTab(ctk.CTkFrame):
         # 获取风格
         style = self.style_var.get()
         
+        # 保存当前输入
+        self._save_current_input()
+        
+        # 禁用按钮并显示加载状态
+        self.generate_title_btn.configure(
+            state="disabled",
+            text="🔄 生成中...",
+            fg_color="gray"
+        )
+        
         # 显示加载状态
         self._show_result("⏳ 正在生成标题...\n请稍候...")
         
@@ -277,6 +294,16 @@ class XiaohongshuTab(ctk.CTkFrame):
             self._show_result(f"❌ 生成失败：{str(e)}")
         
         finally:
+            # 恢复按钮状态
+            try:
+                self.generate_title_btn.configure(
+                    state="normal",
+                    text="🎯 生成标题",
+                    fg_color=("blue", "darkblue")
+                )
+            except:
+                pass
+            
             if loop:
                 loop.close()
     
@@ -293,6 +320,13 @@ class XiaohongshuTab(ctk.CTkFrame):
         # 获取参数
         category = self.category_var.get()
         max_tags = int(self.tags_var.get())
+        
+        # 禁用按钮并显示加载状态
+        self.recommend_tags_btn.configure(
+            state="disabled",
+            text="🔄 推荐中...",
+            fg_color="gray"
+        )
         
         # 显示加载状态
         self._show_result("⏳ 正在推荐标签...\n请稍候...")
@@ -337,6 +371,16 @@ class XiaohongshuTab(ctk.CTkFrame):
             self._show_result(f"❌ 推荐失败：{str(e)}")
         
         finally:
+            # 恢复按钮状态
+            try:
+                self.recommend_tags_btn.configure(
+                    state="normal",
+                    text="🏷️ 推荐标签",
+                    fg_color=("blue", "darkblue")
+                )
+            except:
+                pass
+            
             if loop:
                 loop.close()
     
@@ -358,6 +402,32 @@ class XiaohongshuTab(ctk.CTkFrame):
         
         self.result_text.delete("1.0", "end")
         self.result_text.insert("1.0", text)
+    
+    def _load_last_input(self):
+        """加载上次输入"""
+        try:
+            last_input = self.pref_manager.load_last_input("xiaohongshu")
+            if last_input:
+                if "topic" in last_input:
+                    self.topic_entry.insert(0, last_input["topic"])
+                if "keywords" in last_input:
+                    self.keywords_entry.insert(0, last_input["keywords"])
+                if "style" in last_input:
+                    self.style_var.set(last_input["style"])
+        except:
+            pass
+    
+    def _save_current_input(self):
+        """保存当前输入"""
+        try:
+            data = {
+                "topic": self.topic_entry.get().strip(),
+                "keywords": self.keywords_entry.get().strip(),
+                "style": self.style_var.get()
+            }
+            self.pref_manager.save_last_input("xiaohongshu", data)
+        except:
+            pass
 
 
 # 测试函数

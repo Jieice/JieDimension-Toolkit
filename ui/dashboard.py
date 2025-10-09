@@ -84,6 +84,9 @@ class Dashboard(ctk.CTkScrollableFrame):
         # 图表画布
         self.chart_canvases = {}
         
+        # 优化滚动性能
+        self._setup_smooth_scroll()
+        
         # 创建界面
         self._create_header()
         self._create_stat_cards()
@@ -677,6 +680,23 @@ class Dashboard(ctk.CTkScrollableFrame):
         main_window = self.winfo_toplevel()
         if hasattr(main_window, 'show_settings'):
             main_window.show_settings()
+    
+    def _setup_smooth_scroll(self):
+        """设置平滑滚动"""
+        try:
+            if hasattr(self, '_parent_canvas'):
+                self._parent_canvas.bind_all("<MouseWheel>", self._on_smooth_scroll, add="+")
+        except Exception:
+            pass
+    
+    def _on_smooth_scroll(self, event):
+        """平滑滚动处理"""
+        try:
+            scroll_amount = -1 * int(event.delta / 120)
+            self._parent_canvas.yview_scroll(scroll_amount, "units")
+            return "break"
+        except Exception:
+            pass
     
     def _export_report(self):
         """导出Excel报告"""

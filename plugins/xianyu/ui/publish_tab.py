@@ -141,6 +141,9 @@ class XianyuPublishTab(ctk.CTkScrollableFrame):
         self.use_browser = False  # 默认使用模拟模式
         self.headless = False  # 默认显示浏览器窗口
         
+        # 优化滚动性能
+        self._setup_smooth_scroll()
+        
         # 创建界面
         self._create_header()
         self._create_control_panel()
@@ -150,6 +153,23 @@ class XianyuPublishTab(ctk.CTkScrollableFrame):
         
         # 检查Cookie状态
         self._check_cookie_status()
+    
+    def _setup_smooth_scroll(self):
+        """设置平滑滚动"""
+        try:
+            if hasattr(self, '_parent_canvas'):
+                self._parent_canvas.bind_all("<MouseWheel>", self._on_smooth_scroll, add="+")
+        except Exception:
+            pass
+    
+    def _on_smooth_scroll(self, event):
+        """平滑滚动处理"""
+        try:
+            scroll_amount = -1 * int(event.delta / 120)
+            self._parent_canvas.yview_scroll(scroll_amount, "units")
+            return "break"
+        except Exception:
+            pass
     
     def _create_header(self):
         """创建顶部标题栏"""

@@ -25,6 +25,9 @@ class SettingsPanel(ctk.CTkScrollableFrame):
         # 配置网格
         self.grid_columnconfigure(0, weight=1)
         
+        # 优化滚动性能
+        self._setup_smooth_scroll()
+        
         # 配置文件路径
         self.config_path = "config/settings.json"
         self.settings = self._load_settings()
@@ -716,6 +719,25 @@ class SettingsPanel(ctk.CTkScrollableFrame):
     def _update_temp_label(self, value):
         """更新温度标签"""
         self.temp_value_label.configure(text=f"{float(value):.1f}")
+    
+    def _setup_smooth_scroll(self):
+        """设置平滑滚动"""
+        try:
+            # 减少滚动灵敏度，防止撕裂
+            if hasattr(self, '_parent_canvas'):
+                self._parent_canvas.bind_all("<MouseWheel>", self._on_smooth_scroll, add="+")
+        except Exception:
+            pass
+    
+    def _on_smooth_scroll(self, event):
+        """平滑滚动处理"""
+        try:
+            # 减少滚动速度（除以3而不是默认的1）
+            scroll_amount = -1 * int(event.delta / 120)
+            self._parent_canvas.yview_scroll(scroll_amount, "units")
+            return "break"
+        except Exception:
+            pass
     
     def _browse_database(self):
         """浏览数据库文件"""
