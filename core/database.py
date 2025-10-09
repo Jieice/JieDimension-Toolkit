@@ -1,7 +1,7 @@
 """
 JieDimension Toolkit - 数据库管理器
 支持商品、任务、AI使用统计等数据管理
-Version: 1.16.0
+Version: 1.17.1
 """
 
 import aiosqlite
