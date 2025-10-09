@@ -547,7 +547,7 @@ class SettingsPanel(ctk.CTkScrollableFrame):
         
         current_version = ctk.CTkLabel(
             update_frame,
-            text="v1.17.1",
+            text="v1.17.2",
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color=("green", "lightgreen")
         )

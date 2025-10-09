@@ -1,7 +1,7 @@
 """
 JieDimension Toolkit - 主程序入口
 AI驱动的多平台内容发布工具
-Version: 1.17.1
+Version: 1.17.2
 """
 
 import sys
@@ -112,7 +112,7 @@ def main():
     """主函数 - 启动GUI"""
     
     print("=" * 60)
-    print("🚀 JieDimension Toolkit v1.17.1")
+    print("🚀 JieDimension Toolkit v1.17.2 - 热更新测试版")
     print("=" * 60)
     print()
     

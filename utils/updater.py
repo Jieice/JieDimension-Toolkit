@@ -20,7 +20,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # 当前版本
-CURRENT_VERSION = "1.17.1"
+CURRENT_VERSION = "1.17.2"
 
 # GitHub仓库信息
 GITHUB_REPO = "Jieice/JieDimension-Toolkit"  # 格式: owner/repo
