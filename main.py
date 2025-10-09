@@ -1,7 +1,7 @@
 """
 JieDimension Toolkit - 主程序入口
 AI驱动的多平台内容发布工具
-Version: 1.16.0
+Version: 1.17.1
 """
 
 import sys
@@ -86,7 +86,7 @@ def write_crash_log(exception_info):
             f.write("JieDimension Toolkit - 崩溃日志\n")
             f.write("=" * 60 + "\n\n")
             f.write(f"时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write(f"版本: v1.16.0\n")
+            f.write(f"版本: v1.17.1\n")
             f.write(f"Python: {sys.version}\n")
             f.write(f"平台: {sys.platform}\n")
             f.write(f"工作目录: {os.getcwd()}\n")
@@ -112,7 +112,7 @@ def main():
     """主函数 - 启动GUI"""
     
     print("=" * 60)
-    print("🚀 JieDimension Toolkit v1.17.0")
+    print("🚀 JieDimension Toolkit v1.17.1")
     print("=" * 60)
     print()
     

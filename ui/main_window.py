@@ -20,7 +20,7 @@ class MainWindow(ctk.CTk):
         super().__init__()
         
         # 窗口配置
-        self.title("JieDimension Toolkit v1.0 - AI驱动的多平台内容发布工具")
+        self.title("JieDimension Toolkit v1.17.1 - AI驱动的多平台内容发布工具")
         self.geometry("1400x900")
         
         # 居中显示
