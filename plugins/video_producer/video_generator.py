@@ -23,6 +23,9 @@ class VideoGenerator:
         self.fps = 30
         self.resolution = (1080, 1920)  # 竖屏9:16
         self.duration_per_slide = 5  # 每屏5秒
+        
+        # 配置FFmpeg路径（优先使用项目内的）
+        self._setup_ffmpeg()
     
     async def generate_text_video(
         self,
@@ -186,6 +189,20 @@ class VideoGenerator:
         except Exception as e:
             logger.error(f"添加字幕失败：{e}")
             return video_path
+    
+    def _setup_ffmpeg(self):
+        """配置FFmpeg路径"""
+        # 检查项目内的FFmpeg
+        project_ffmpeg = Path("tools/ffmpeg/bin/ffmpeg.exe")
+        
+        if project_ffmpeg.exists():
+            # 使用项目内的FFmpeg
+            os.environ["IMAGEIO_FFMPEG_EXE"] = str(project_ffmpeg.absolute())
+            logger.info(f"✅ 使用项目FFmpeg: {project_ffmpeg}")
+        else:
+            # 使用系统FFmpeg（如果有）
+            logger.warning("⚠️ 项目FFmpeg未找到，使用系统FFmpeg")
+            logger.warning(f"请运行: tools\\ffmpeg\\下载FFmpeg.ps1")
     
     def get_free_bgm(self) -> List[str]:
         """
