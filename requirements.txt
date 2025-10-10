@@ -54,3 +54,10 @@ pytest-asyncio>=0.21.0          # For async test support
 # Text Processing (Day 9 - Zhihu)
 jieba>=0.42.0                   # For Chinese text segmentation
 
+# Video Production (Day 26 - 自动化短视频)
+moviepy>=1.0.3                  # Video processing
+yt-dlp>=2023.0.0               # Video download
+# Pillow already included above
+beautifulsoup4>=4.12.0         # HTML parsing
+ffmpeg-python>=0.2.0           # FFmpeg wrapper
+
