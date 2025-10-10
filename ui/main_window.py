@@ -137,7 +137,6 @@ class MainWindow(ctk.CTk):
             ("📊 商品管理", self.show_management, "商品发布"),
             ("separator", None, "🎥 视频制作"),
             ("🎬 视频生产", self.show_video_production, "视频制作"),
-            ("🤖 AI助手", self.show_ai_assistant, "视频制作"),
             ("separator", None, "🔧 工具"),
             ("🌐 浏览器", self.show_browser_control, "工具"),
             ("🔐 API配置", self.show_api_config, "工具"),
