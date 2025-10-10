@@ -13,11 +13,11 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 
-class VideoProductionTab(ctk.CTkFrame):
-    """视频生产界面"""
+class VideoProductionTab(ctk.CTkScrollableFrame):
+    """视频生产界面（可滚动）"""
     
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, fg_color="transparent")
         
         # 配置网格
         self.grid_columnconfigure(0, weight=1)
@@ -38,20 +38,20 @@ class VideoProductionTab(ctk.CTkFrame):
         # 内容源选择
         self._create_source_section()
         
-        # 爆款分析
+        # 操作按钮（提前到这里）
+        self._create_actions()
+        
+        # 结果显示（中间位置）
+        self._create_result_section()
+        
+        # 爆款分析选项
         self._create_analysis_section()
         
-        # 视频生成
+        # 视频生成设置
         self._create_generation_section()
         
         # 发布设置
         self._create_publish_section()
-        
-        # 操作按钮
-        self._create_actions()
-        
-        # 结果显示
-        self._create_result_section()
     
     def _create_source_section(self):
         """创建内容源选择区域"""
@@ -102,7 +102,7 @@ class VideoProductionTab(ctk.CTkFrame):
     def _create_analysis_section(self):
         """创建爆款分析区域"""
         frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
-        frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        frame.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
         
         label = ctk.CTkLabel(
             frame,
@@ -137,7 +137,7 @@ class VideoProductionTab(ctk.CTkFrame):
     def _create_generation_section(self):
         """创建视频生成区域"""
         frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
-        frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        frame.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
         frame.grid_columnconfigure(1, weight=1)
         
         label = ctk.CTkLabel(
@@ -165,7 +165,7 @@ class VideoProductionTab(ctk.CTkFrame):
     def _create_publish_section(self):
         """创建发布设置区域"""
         frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
-        frame.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        frame.grid(row=6, column=0, padx=20, pady=(10, 30), sticky="ew")  # 底部留30px空间
         
         label = ctk.CTkLabel(
             frame,
@@ -191,66 +191,79 @@ class VideoProductionTab(ctk.CTkFrame):
         ).grid(row=2, column=0, padx=15, pady=(5, 15), sticky="w")
     
     def _create_actions(self):
-        """创建操作按钮"""
-        frame = ctk.CTkFrame(self, fg_color="transparent")
-        frame.grid(row=5, column=0, padx=20, pady=20, sticky="ew")
+        """创建操作按钮（放在顶部，避免被遮挡）"""
+        frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
+        frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
         frame.grid_columnconfigure(0, weight=1)
         
+        # 提示标签
+        ctk.CTkLabel(
+            frame,
+            text="⚡ 快速操作",
+            font=ctk.CTkFont(size=14, weight="bold")
+        ).grid(row=0, column=0, padx=15, pady=(15, 10), sticky="w")
+        
+        # 按钮容器
         buttons_frame = ctk.CTkFrame(frame, fg_color="transparent")
-        buttons_frame.grid(row=0, column=0)
+        buttons_frame.grid(row=1, column=0, padx=15, pady=(0, 15))
         
         # 分析按钮
-        ctk.CTkButton(
+        self.analyze_btn = ctk.CTkButton(
             buttons_frame,
             text="🔍 分析爆款",
             command=self._analyze_viral,
             width=150,
-            height=40
-        ).pack(side="left", padx=5)
+            height=45,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        self.analyze_btn.pack(side="left", padx=5)
         
         # 生成按钮
-        ctk.CTkButton(
+        self.generate_btn = ctk.CTkButton(
             buttons_frame,
             text="🎬 生成视频",
             command=self._generate_video,
             width=150,
-            height=40,
+            height=45,
             fg_color="green",
-            hover_color="darkgreen"
-        ).pack(side="left", padx=5)
+            hover_color="darkgreen",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        self.generate_btn.pack(side="left", padx=5)
         
         # 发布按钮
-        ctk.CTkButton(
+        self.publish_btn = ctk.CTkButton(
             buttons_frame,
             text="🚀 一键发布",
             command=self._publish_video,
             width=150,
-            height=40,
+            height=45,
             fg_color="orange",
-            hover_color="darkorange"
-        ).pack(side="left", padx=5)
+            hover_color="darkorange",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        self.publish_btn.pack(side="left", padx=5)
     
     def _create_result_section(self):
         """创建结果显示区域"""
         frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
-        frame.grid(row=6, column=0, padx=20, pady=10, sticky="nsew")
-        self.grid_rowconfigure(6, weight=1)
+        frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
         
         label = ctk.CTkLabel(
             frame,
-            text="📊 结果",
+            text="📊 分析结果",
             font=ctk.CTkFont(size=16, weight="bold")
         )
         label.grid(row=0, column=0, padx=15, pady=(15, 10), sticky="w")
         
-        # 结果文本框
+        # 结果文本框（固定高度，避免被遮挡）
         self.result_text = ctk.CTkTextbox(
             frame,
             font=ctk.CTkFont(size=13),
-            wrap="word"
+            wrap="word",
+            height=300
         )
-        self.result_text.grid(row=1, column=0, padx=15, pady=(0, 15), sticky="nsew")
-        frame.grid_rowconfigure(1, weight=1)
+        self.result_text.grid(row=1, column=0, padx=15, pady=(0, 15), sticky="ew")
     
     def _analyze_viral(self):
         """分析爆款"""
