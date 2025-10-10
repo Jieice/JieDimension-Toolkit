@@ -561,13 +561,18 @@ class MainWindow(ctk.CTk):
         self._clear_content()
         self._highlight_menu(10)  # 调整索引
         
-        placeholder = ctk.CTkLabel(
-            self.content,
-            text="🤖 AI助手\n\n即将推出...\n\n支持智能对话、内容生成、批量处理",
-            font=ctk.CTkFont(size=24),
-            text_color="gray50"
-        )
-        placeholder.place(relx=0.5, rely=0.5, anchor="center")
+        try:
+            from ui.ai_chat_window import AIChatWindow
+            chat_window = AIChatWindow(self.content)
+            chat_window.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
+        except Exception as e:
+            error_label = ctk.CTkLabel(
+                self.content,
+                text=f"❌ 加载失败：{str(e)}",
+                font=ctk.CTkFont(size=16),
+                text_color="red"
+            )
+            error_label.place(relx=0.5, rely=0.5, anchor="center")
     
     def show_api_config(self):
         """显示API配置"""
