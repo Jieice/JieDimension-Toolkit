@@ -64,10 +64,10 @@ class VideoProductionTab(ctk.CTkFrame):
             text="📝 内容源",
             font=ctk.CTkFont(size=16, weight="bold")
         )
-        label.grid(row=0, column=0, columnspan=2, padx=15, pady=(15, 10), sticky="w")
+        label.grid(row=0, column=0, columnspan=3, padx=15, pady=(15, 10), sticky="w")
         
         # 选择内容源
-        self.source_var = ctk.StringVar(value="zhihu")
+        self.source_var = ctk.StringVar(value="bilibili")
         sources = [
             ("知乎热榜", "zhihu"),
             ("B站热门", "bilibili"),
@@ -81,7 +81,23 @@ class VideoProductionTab(ctk.CTkFrame):
                 variable=self.source_var,
                 value=value
             )
-            radio.grid(row=1, column=i, padx=15, pady=(0, 15), sticky="w")
+            radio.grid(row=1, column=i, padx=15, pady=5, sticky="w")
+        
+        # 内容板块选择
+        ctk.CTkLabel(
+            frame,
+            text="板块分类:",
+            font=ctk.CTkFont(size=14)
+        ).grid(row=2, column=0, padx=15, pady=(10, 5), sticky="w")
+        
+        self.category_var = ctk.StringVar(value="全部")
+        category_menu = ctk.CTkOptionMenu(
+            frame,
+            variable=self.category_var,
+            values=["全部", "科技", "游戏", "娱乐", "美食", "知识", "生活", "动画"],
+            width=150
+        )
+        category_menu.grid(row=2, column=1, padx=15, pady=(10, 15), sticky="w")
     
     def _create_analysis_section(self):
         """创建爆款分析区域"""
@@ -241,15 +257,71 @@ class VideoProductionTab(ctk.CTkFrame):
         self.result_text.delete("1.0", "end")
         self.result_text.insert("1.0", "🔍 正在分析爆款内容...\n请稍候...")
         
-        # TODO: 实际分析逻辑
+        # 在后台线程运行
         thread = threading.Thread(target=self._do_analyze, daemon=True)
         thread.start()
     
     def _do_analyze(self):
         """后台分析"""
-        # TODO: 调用实际分析功能
-        self.result_text.delete("1.0", "end")
-        self.result_text.insert("1.0", "✅ 分析完成！\n\n功能开发中...")
+        try:
+            # 创建事件循环
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # 导入模块
+            from plugins.video_producer.content_scraper import ContentScraper
+            from plugins.video_producer.viral_analyzer import ViralAnalyzer
+            from core.ai_engine import AIEngine
+            
+            # 抓取内容
+            scraper = ContentScraper()
+            source = self.source_var.get()
+            
+            if source == "bilibili":
+                videos = loop.run_until_complete(scraper.scrape_bilibili_hot(limit=5))
+                if not videos:
+                    self.result_text.delete("1.0", "end")
+                    self.result_text.insert("1.0", "❌ 抓取失败，请检查网络")
+                    return
+                
+                # 分析第一个视频
+                video = videos[0]
+                result = f"📊 B站热门视频分析\n\n"
+                result += f"标题：{video.get('title')}\n"
+                result += f"播放：{video.get('play'):,}\n"
+                result += f"点赞：{video.get('like'):,}\n"
+                result += f"作者：{video.get('author')}\n\n"
+                
+                # 爆款分析
+                if self.analyze_title_var.get():
+                    analyzer = ViralAnalyzer(AIEngine())
+                    title_analysis = loop.run_until_complete(
+                        analyzer.analyze_title(video.get('title'), video)
+                    )
+                    
+                    result += f"🔍 标题分析：\n"
+                    result += f"- Hook: {', '.join(title_analysis.get('hooks', []))}\n"
+                    result += f"- 评分: {title_analysis.get('score')}/100\n"
+                    result += f"- 建议: {title_analysis.get('suggestions', ['无'])[0]}\n\n"
+                    
+                    if title_analysis.get('ai_insights'):
+                        result += f"💡 AI分析:\n{title_analysis.get('ai_insights')}\n\n"
+                
+                # 显示所有热门视频
+                result += f"\n📋 其他热门视频:\n\n"
+                for i, v in enumerate(videos[1:], 2):
+                    result += f"{i}. {v.get('title')}\n"
+                    result += f"   {v.get('play'):,}播放 | {v.get('like'):,}点赞\n\n"
+                
+                self.result_text.delete("1.0", "end")
+                self.result_text.insert("1.0", result)
+            
+        except Exception as e:
+            self.result_text.delete("1.0", "end")
+            self.result_text.insert("1.0", f"❌ 分析失败：{str(e)}")
+        finally:
+            if loop:
+                loop.close()
     
     def _generate_video(self):
         """生成视频"""
