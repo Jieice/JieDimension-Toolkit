@@ -175,22 +175,30 @@ class AIChatWindow(ctk.CTkFrame):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
-            # 调用AI引擎
+            # 导入工具执行器
+            from core.tool_executor import get_tool_executor
             from core.ai_engine import AIEngine, TaskComplexity
+            
+            tool_executor = get_tool_executor()
             ai_engine = AIEngine()
             
-            # 构建提示词（包含上下文）
+            # 获取可用工具列表
+            tools_desc = tool_executor.get_tools_description()
+            
+            # 构建提示词（包含工具信息）
             context = "\n".join([
                 f"{msg['role']}: {msg['content']}" 
                 for msg in self.chat_history[-4:]  # 最近4轮对话
             ])
             
-            prompt = f"""你是JieDimension Toolkit的AI助手。
+            prompt = f"""你是JieDimension Toolkit的AI助手，可以调用工具帮助用户。
 
-工具功能：
-- 视频生产：抓取热门内容、分析爆款、生成视频
-- 内容发布：小红书、知乎、B站、闲鱼
-- 数据分析：查看统计、导出报告
+{tools_desc}
+
+如果用户需求可以用工具完成，回复格式：
+[TOOL: 工具名] 参数说明
+
+否则正常回复。
 
 上下文：
 {context}
@@ -210,8 +218,14 @@ AI助手:"""
             # 获取回复文本
             reply = result.content if hasattr(result, 'content') else str(result)
             
-            # 显示AI回复
-            self._add_ai_message(reply)
+            # 检查是否需要调用工具
+            if "[TOOL:" in reply:
+                # 解析工具调用
+                tool_result = loop.run_until_complete(self._execute_tool_from_reply(reply))
+                self._add_ai_message(tool_result)
+            else:
+                # 普通回复
+                self._add_ai_message(reply)
             
         except Exception as e:
             self._add_ai_message(f"抱歉，处理失败：{str(e)}")
@@ -221,6 +235,32 @@ AI助手:"""
             self.send_btn.configure(state="normal", text="发送")
             if loop:
                 loop.close()
+    
+    async def _execute_tool_from_reply(self, reply: str) -> str:
+        """从AI回复中解析并执行工具"""
+        try:
+            from core.tool_executor import get_tool_executor
+            tool_executor = get_tool_executor()
+            
+            # 简单解析（TODO: 改进解析逻辑）
+            if "scrape_bilibili_hot" in reply:
+                videos = await tool_executor.execute_tool("scrape_bilibili_hot", {"limit": 5})
+                if videos.get('success'):
+                    result_text = "✅ 已抓取B站热门视频：\n\n"
+                    for i, v in enumerate(videos['result'][:3], 1):
+                        result_text += f"{i}. {v.get('title')}\n"
+                        result_text += f"   {v.get('play'):,}播放\n\n"
+                    return result_text
+            
+            elif "analyze_viral_title" in reply:
+                # TODO: 从用户消息提取标题
+                return "请提供要分析的标题"
+            
+            else:
+                return reply
+                
+        except Exception as e:
+            return f"工具执行失败：{str(e)}"
     
     def _use_shortcut(self, shortcut_text: str):
         """使用快捷指令"""
