@@ -63,11 +63,22 @@ class MainWindow(ctk.CTk):
         self.geometry(f"{window_width}x{window_height}+{x}+{y}")
     
     def _create_sidebar(self):
-        """创建侧边栏"""
-        # 侧边栏框架
-        self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0)
+        """创建侧边栏（可滚动）"""
+        # 侧边栏外层容器
+        sidebar_container = ctk.CTkFrame(self, width=250, corner_radius=0)
+        sidebar_container.grid(row=0, column=0, sticky="nsew")
+        sidebar_container.grid_rowconfigure(0, weight=1)
+        sidebar_container.grid_columnconfigure(0, weight=1)
+        
+        # 侧边栏滚动框架
+        self.sidebar = ctk.CTkScrollableFrame(
+            sidebar_container, 
+            width=230,
+            corner_radius=0,
+            fg_color="transparent"
+        )
         self.sidebar.grid(row=0, column=0, sticky="nsew")
-        self.sidebar.grid_rowconfigure(10, weight=1)  # 底部留空
+        self.sidebar.grid_columnconfigure(0, weight=1)
         
         # Logo 区域
         logo_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
