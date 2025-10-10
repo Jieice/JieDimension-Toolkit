@@ -26,38 +26,66 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         self._create_ui()
     
     def _create_ui(self):
-        """创建用户界面"""
-        # 标题
+        """创建用户界面（左右分栏）"""
+        # 配置左右两栏
+        self.grid_columnconfigure(0, weight=1)  # 左栏
+        self.grid_columnconfigure(1, weight=1)  # 右栏
+        
+        # 标题（横跨两栏）
         title_label = ctk.CTkLabel(
             self,
             text="🎬 自动化视频生产",
             font=ctk.CTkFont(size=24, weight="bold")
         )
-        title_label.grid(row=0, column=0, padx=20, pady=(20, 10))
+        title_label.grid(row=0, column=0, columnspan=2, padx=20, pady=(20, 10))
         
-        # 工作流程选择
-        self._create_workflow_section()
+        # === 左栏：输入和设置 ===
+        self._create_left_column()
         
-        # 内容输入区域（新增）
-        self._create_content_input_section()
+        # === 右栏：脚本编辑和结果 ===
+        self._create_right_column()
+    
+    def _create_left_column(self):
+        """创建左栏（输入和设置）"""
+        # 左栏容器
+        left_container = ctk.CTkFrame(self, fg_color="transparent")
+        left_container.grid(row=1, column=0, sticky="nsew", padx=(20, 10), pady=10)
+        left_container.grid_columnconfigure(0, weight=1)
         
-        # 内容源选择（可选）
-        self._create_source_section()
+        row = 0
         
-        # 操作按钮
-        self._create_actions()
+        # 内容输入
+        self._create_content_input_section_v2(left_container, row)
+        row += 1
         
-        # 脚本编辑区域（新增）
-        self._create_script_editor()
+        # 参考热门（可选）
+        self._create_source_section_v2(left_container, row)
+        row += 1
         
-        # 视频生成设置
-        self._create_generation_section()
+        # 视频设置
+        self._create_generation_section_v2(left_container, row)
+        row += 1
         
         # 发布设置
-        self._create_publish_section()
+        self._create_publish_section_v2(left_container, row)
+    
+    def _create_right_column(self):
+        """创建右栏（脚本和结果）"""
+        # 右栏容器
+        right_container = ctk.CTkFrame(self, fg_color="transparent")
+        right_container.grid(row=1, column=1, sticky="nsew", padx=(10, 20), pady=10)
+        right_container.grid_columnconfigure(0, weight=1)
+        right_container.grid_rowconfigure(1, weight=1)  # 脚本编辑区可扩展
+        right_container.grid_rowconfigure(2, weight=1)  # 分析结果可扩展
         
-        # 爆款分析选项（可折叠）
-        self._create_analysis_section()
+        # 操作按钮（顶部）
+        self._create_actions_v2(right_container)
+        
+        # 脚本编辑
+        self._create_script_editor_v2(right_container)
+        
+        # 分析结果
+        self._create_analysis_section_v2(right_container)
     
     def _create_workflow_section(self):
         """创建工作流程选择"""
