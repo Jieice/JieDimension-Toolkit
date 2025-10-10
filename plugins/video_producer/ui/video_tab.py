@@ -163,39 +163,35 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         category_menu.grid(row=2, column=1, padx=15, pady=(10, 15), sticky="w")
     
     def _create_analysis_section(self):
-        """创建爆款分析区域（结果显示）"""
+        """创建爆款分析结果显示"""
         frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
         frame.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
         
         label = ctk.CTkLabel(
             frame,
-            text="🔍 爆款分析",
+            text="🔍 分析结果",
             font=ctk.CTkFont(size=16, weight="bold")
         )
         label.grid(row=0, column=0, padx=15, pady=(15, 10), sticky="w")
         
-        # 分析选项
+        # 分析结果文本框
+        self.analysis_text = ctk.CTkTextbox(
+            frame,
+            font=ctk.CTkFont(size=13),
+            wrap="word",
+            height=250
+        )
+        self.analysis_text.grid(row=1, column=0, padx=15, pady=(0, 15), sticky="ew")
+        
+        # 分析选项（简化）
+        options_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        options_frame.grid(row=2, column=0, padx=15, pady=(0, 15), sticky="w")
+        
         self.analyze_title_var = ctk.BooleanVar(value=True)
-        self.analyze_content_var = ctk.BooleanVar(value=True)
         self.analyze_data_var = ctk.BooleanVar(value=True)
         
-        ctk.CTkCheckBox(
-            frame,
-            text="分析标题吸引力",
-            variable=self.analyze_title_var
-        ).grid(row=1, column=0, padx=15, pady=5, sticky="w")
-        
-        ctk.CTkCheckBox(
-            frame,
-            text="分析内容质量",
-            variable=self.analyze_content_var
-        ).grid(row=2, column=0, padx=15, pady=5, sticky="w")
-        
-        ctk.CTkCheckBox(
-            frame,
-            text="分析数据表现",
-            variable=self.analyze_data_var
-        ).grid(row=3, column=0, padx=15, pady=(5, 15), sticky="w")
+        ctk.CTkCheckBox(options_frame, text="分析标题", variable=self.analyze_title_var).pack(side="left", padx=5)
+        ctk.CTkCheckBox(options_frame, text="分析数据", variable=self.analyze_data_var).pack(side="left", padx=5)
     
     def _create_generation_section(self):
         """创建视频生成区域"""
@@ -387,18 +383,18 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         label.grid(row=0, column=0, padx=15, pady=(15, 10), sticky="w")
         
         # 结果文本框（固定高度，避免被遮挡）
-        self.result_text = ctk.CTkTextbox(
+        self.analysis_text = ctk.CTkTextbox(
             frame,
             font=ctk.CTkFont(size=13),
             wrap="word",
             height=300
         )
-        self.result_text.grid(row=1, column=0, padx=15, pady=(0, 15), sticky="ew")
+        self.analysis_text.grid(row=1, column=0, padx=15, pady=(0, 15), sticky="ew")
     
     def _analyze_viral(self):
-        """分析爆款"""
-        self.result_text.delete("1.0", "end")
-        self.result_text.insert("1.0", "🔍 正在分析爆款内容...\n请稍候...")
+        """分析爆款（参考热门）"""
+        self.analysis_text.delete("1.0", "end")
+        self.analysis_text.insert("1.0", "🔍 正在分析热门内容...\n请稍候...")
         
         # 在后台线程运行
         thread = threading.Thread(target=self._do_analyze, daemon=True)
@@ -423,8 +419,8 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
             if source == "bilibili":
                 videos = loop.run_until_complete(scraper.scrape_bilibili_hot(limit=5))
                 if not videos:
-                    self.result_text.delete("1.0", "end")
-                    self.result_text.insert("1.0", "❌ 抓取失败，请检查网络")
+                    self.analysis_text.delete("1.0", "end")
+                    self.analysis_text.insert("1.0", "❌ 抓取失败，请检查网络")
                     return
                 
                 # 分析第一个视频
@@ -456,20 +452,20 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
                     result += f"{i}. {v.get('title')}\n"
                     result += f"   {v.get('play'):,}播放 | {v.get('like'):,}点赞\n\n"
                 
-                self.result_text.delete("1.0", "end")
-                self.result_text.insert("1.0", result)
+                self.analysis_text.delete("1.0", "end")
+                self.analysis_text.insert("1.0", result)
             
         except Exception as e:
-            self.result_text.delete("1.0", "end")
-            self.result_text.insert("1.0", f"❌ 分析失败：{str(e)}")
+            self.analysis_text.delete("1.0", "end")
+            self.analysis_text.insert("1.0", f"❌ 分析失败：{str(e)}")
         finally:
             if loop:
                 loop.close()
     
     def _generate_video(self):
         """生成视频"""
-        self.result_text.delete("1.0", "end")
-        self.result_text.insert("1.0", "🎬 正在生成视频...\n请稍候...")
+        self.analysis_text.delete("1.0", "end")
+        self.analysis_text.insert("1.0", "🎬 正在生成视频...\n请稍候...")
         
         # 禁用按钮
         self.generate_btn.configure(state="disabled", text="生成中...")
@@ -573,12 +569,12 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
             result += f"- 表情包：{'开启' if use_emoji else '关闭'}\n\n"
             result += f"💡 提示：视频已保存到data/videos目录"
             
-            self.result_text.delete("1.0", "end")
-            self.result_text.insert("1.0", result)
+            self.analysis_text.delete("1.0", "end")
+            self.analysis_text.insert("1.0", result)
             
         except Exception as e:
-            self.result_text.delete("1.0", "end")
-            self.result_text.insert("1.0", f"❌ 生成失败：{str(e)}")
+            self.analysis_text.delete("1.0", "end")
+            self.analysis_text.insert("1.0", f"❌ 生成失败：{str(e)}")
             import traceback
             traceback.print_exc()
         
@@ -597,13 +593,13 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         asset_dir = os.path.abspath("data/assets")
         if os.path.exists(asset_dir):
             os.startfile(asset_dir)
-            self.result_text.delete("1.0", "end")
-            self.result_text.insert("1.0", f"📦 素材库已打开：\n{asset_dir}\n\n请将素材放到对应文件夹：\n\nemojis/ - 表情包\nbackgrounds/ - 背景图\nmusic/ - 背景音乐\n\n支持的格式：\nPNG、JPG、MP3")
+            self.analysis_text.delete("1.0", "end")
+            self.analysis_text.insert("1.0", f"📦 素材库已打开：\n{asset_dir}\n\n请将素材放到对应文件夹：\n\nemojis/ - 表情包\nbackgrounds/ - 背景图\nmusic/ - 背景音乐\n\n支持的格式：\nPNG、JPG、MP3")
         else:
             messagebox.showwarning("提示", "素材目录不存在")
     
     def _publish_video(self):
         """发布视频"""
-        self.result_text.delete("1.0", "end")
-        self.result_text.insert("1.0", "🚀 正在发布视频...\n功能开发中...")
+        self.analysis_text.delete("1.0", "end")
+        self.analysis_text.insert("1.0", "🚀 正在发布视频...\n功能开发中...")
 
