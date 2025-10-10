@@ -169,9 +169,16 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         
         # 字体大小
         ctk.CTkLabel(frame, text="字体大小:").grid(row=5, column=0, padx=15, pady=5, sticky="w")
-        self.font_size_var = ctk.StringVar(value="70")
-        font_size_slider = ctk.CTkSlider(frame, from_=40, to=120, variable=self.font_size_var, width=150)
-        font_size_slider.grid(row=5, column=1, padx=15, pady=5, sticky="w")
+        self.font_size_var = ctk.IntVar(value=70)  # 改为IntVar
+        
+        size_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        size_frame.grid(row=5, column=1, padx=15, pady=5, sticky="w")
+        
+        font_size_slider = ctk.CTkSlider(size_frame, from_=40, to=120, variable=self.font_size_var, width=120)
+        font_size_slider.pack(side="left", padx=(0, 10))
+        
+        size_label = ctk.CTkLabel(size_frame, textvariable=self.font_size_var, width=40)
+        size_label.pack(side="left")
         
         # 背景风格
         ctk.CTkLabel(frame, text="背景风格:").grid(row=6, column=0, padx=15, pady=5, sticky="w")
