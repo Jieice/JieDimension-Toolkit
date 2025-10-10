@@ -28,8 +28,8 @@ class VideoProductionTabSimple(ctk.CTkFrame):
     
     def _create_ui(self):
         """创建UI"""
-        # === 左栏：控制面板 ===
-        left_panel = ctk.CTkFrame(self)
+        # === 左栏：控制面板（可滚动）===
+        left_panel = ctk.CTkScrollableFrame(self, fg_color=("gray95", "gray15"))
         left_panel.grid(row=0, column=0, sticky="nsew", padx=(20, 10), pady=20)
         
         # 标题
@@ -44,26 +44,40 @@ class VideoProductionTabSimple(ctk.CTkFrame):
         self.topic_entry = ctk.CTkEntry(input_frame, placeholder_text="例如：健康饮食", height=40)
         self.topic_entry.pack(fill="x", padx=15, pady=(0, 15))
         
-        # 2. 设置
-        settings_frame = self._create_section(left_panel, "🎨 视觉设置")
+        # 2. 视觉设置（可折叠）
+        settings_frame = self._create_collapsible_section(left_panel, "🎨 视觉设置")
         
-        # 字体
-        ctk.CTkLabel(settings_frame, text="字体:").pack(padx=15, pady=(0, 5), anchor="w")
-        self.font_var = ctk.StringVar(value="微软雅黑")
-        ctk.CTkOptionMenu(settings_frame, variable=self.font_var, values=["微软雅黑", "黑体"]).pack(fill="x", padx=15, pady=(0, 10))
+        # 预设方案（快捷选择）
+        preset_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
+        preset_frame.pack(fill="x", padx=15, pady=(0, 10))
         
-        # 字体大小
-        size_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
-        size_frame.pack(fill="x", padx=15, pady=(0, 15))
-        ctk.CTkLabel(size_frame, text="大小:").pack(side="left")
-        self.font_size_var = ctk.IntVar(value=70)
-        ctk.CTkSlider(size_frame, from_=40, to=120, variable=self.font_size_var, width=150).pack(side="left", padx=10)
-        ctk.CTkLabel(size_frame, textvariable=self.font_size_var, width=40).pack(side="left")
+        self.preset_var = ctk.StringVar(value="默认")
+        ctk.CTkLabel(preset_frame, text="预设:").pack(side="left", padx=(0, 10))
+        preset_menu = ctk.CTkOptionMenu(
+            preset_frame, 
+            variable=self.preset_var, 
+            values=["默认", "简约", "动感", "商务"],
+            command=self._apply_preset,
+            width=120
+        )
+        preset_menu.pack(side="left")
         
-        # 背景
-        ctk.CTkLabel(settings_frame, text="背景:").pack(padx=15, pady=(0, 5), anchor="w")
-        self.bg_var = ctk.StringVar(value="渐变")
-        ctk.CTkOptionMenu(settings_frame, variable=self.bg_var, values=["渐变", "纯色"]).pack(fill="x", padx=15, pady=(0, 15))
+        # 详细设置（默认隐藏，点击"高级"展开）
+        self.show_advanced = False
+        advanced_btn = ctk.CTkButton(
+            settings_frame,
+            text="▶ 高级设置",
+            command=self._toggle_advanced,
+            fg_color="transparent",
+            hover_color=("gray80", "gray25"),
+            height=28,
+            font=ctk.CTkFont(size=12)
+        )
+        advanced_btn.pack(padx=15, pady=(0, 15), anchor="w")
+        
+        # 高级设置区域（默认隐藏）
+        self.advanced_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
+        # 不pack，点击时才显示
         
         # 3. 发布
         publish_frame = self._create_section(left_panel, "🚀 发布平台")
@@ -117,6 +131,40 @@ class VideoProductionTabSimple(ctk.CTkFrame):
         ).pack(padx=15, pady=(12, 10), anchor="w")
         
         return frame
+    
+    def _create_collapsible_section(self, parent, title):
+        """创建可折叠区域"""
+        frame = ctk.CTkFrame(parent, fg_color=("gray90", "gray20"))
+        frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        ctk.CTkLabel(
+            frame,
+            text=title,
+            font=ctk.CTkFont(size=13, weight="bold")
+        ).pack(padx=15, pady=(12, 10), anchor="w")
+        
+        return frame
+    
+    def _toggle_advanced(self):
+        """切换高级设置"""
+        # TODO: 实现折叠/展开
+        pass
+    
+    def _apply_preset(self, preset_name):
+        """应用预设方案"""
+        presets = {
+            "默认": {"font": "微软雅黑", "size": 70, "bg": "渐变"},
+            "简约": {"font": "黑体", "size": 60, "bg": "纯色"},
+            "动感": {"font": "微软雅黑", "size": 80, "bg": "渐变"},
+            "商务": {"font": "宋体", "size": 65, "bg": "纯色"}
+        }
+        
+        preset = presets.get(preset_name, presets["默认"])
+        self.font_var.set(preset["font"])
+        self.font_size_var.set(preset["size"])
+        self.bg_var.set(preset["bg"])
+        
+        self._show_output(f"✅ 已应用'{preset_name}'预设")
     
     def _create_action_btn(self, parent, text, command, side, color=None):
         """创建操作按钮"""
