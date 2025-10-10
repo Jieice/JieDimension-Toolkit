@@ -12,12 +12,15 @@ from .viral_analyzer import ViralAnalyzer
 from .ai_analyzer import AIContentAnalyzer
 from .video_generator import VideoGenerator
 from .publisher import VideoPublisher
+from .capcut_integration import CapCutAPI, VideoEditorSelector
 
 __all__ = [
     'ContentScraper',
     'ViralAnalyzer', 
     'AIContentAnalyzer',
     'VideoGenerator',
-    'VideoPublisher'
+    'VideoPublisher',
+    'CapCutAPI',
+    'VideoEditorSelector'
 ]
 
