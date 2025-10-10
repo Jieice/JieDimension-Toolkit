@@ -65,24 +65,41 @@ class VideoGenerator:
             
             # 为每个文字生成图片
             for i, text in enumerate(script_segments):
-                # 创建图片
-                img = Image.new('RGB', self.resolution, color=(30, 40, 60))
+                # 创建渐变背景
+                img = self._create_gradient_background(self.resolution, i)
                 draw = ImageDraw.Draw(img)
                 
-                # 使用默认字体
-                try:
-                    font = ImageFont.truetype("msyh.ttc", 60)  # 微软雅黑
-                except:
-                    font = ImageFont.load_default()
+                # 加载字体（多种尝试）
+                font = self._load_font(70)  # 大一点的字体
                 
-                # 文字居中
-                bbox = draw.textbbox((0, 0), text, font=font)
-                text_width = bbox[2] - bbox[0]
-                text_height = bbox[3] - bbox[1]
-                x = (self.resolution[0] - text_width) // 2
-                y = (self.resolution[1] - text_height) // 2
+                # 计算文字位置（居中）
+                # 处理多行文字
+                lines = self._wrap_text(text, font, self.resolution[0] - 200)
                 
-                draw.text((x, y), text, font=font, fill='white')
+                # 计算总高度
+                total_height = len(lines) * 100  # 每行约100px
+                start_y = (self.resolution[1] - total_height) // 2
+                
+                # 绘制每一行
+                for line_idx, line in enumerate(lines):
+                    bbox = draw.textbbox((0, 0), line, font=font)
+                    text_width = bbox[2] - bbox[0]
+                    x = (self.resolution[0] - text_width) // 2
+                    y = start_y + line_idx * 100
+                    
+                    # 绘制文字阴影（增加立体感）
+                    shadow_offset = 3
+                    draw.text((x + shadow_offset, y + shadow_offset), line, font=font, fill=(0, 0, 0, 180))
+                    
+                    # 绘制描边（增加清晰度）
+                    for adj_x, adj_y in [(-2,0), (2,0), (0,-2), (0,2)]:
+                        draw.text((x + adj_x, y + adj_y), line, font=font, fill=(0, 0, 0))
+                    
+                    # 绘制主文字
+                    draw.text((x, y), line, font=font, fill='white')
+                
+                # 添加序号标记（左上角）
+                draw.text((40, 40), f"{i+1}/{len(script_segments)}", font=self._load_font(30), fill=(255, 255, 255, 200))
                 
                 # 保存临时图片
                 temp_img_path = self.output_dir / f"temp_{i}.png"
@@ -118,35 +135,89 @@ class VideoGenerator:
             logger.error(f"生成视频失败：{e}")
             raise
     
-    def _create_background(self, size: tuple) -> str:
-        """创建背景图片"""
-        try:
-            from PIL import Image, ImageDraw
-            
-            # 创建渐变背景
-            img = Image.new('RGB', size, color=(30, 30, 50))
-            draw = ImageDraw.Draw(img)
-            
-            # 简单渐变效果
-            for i in range(size[1]):
-                ratio = i / size[1]
-                color = (
-                    int(30 + ratio * 20),
-                    int(30 + ratio * 40),
-                    int(50 + ratio * 80)
-                )
-                draw.line([(0, i), (size[0], i)], fill=color)
-            
-            # 保存临时背景
-            bg_path = self.output_dir / "temp_bg.png"
-            img.save(bg_path)
-            
-            return str(bg_path)
-            
-        except Exception as e:
-            logger.error(f"创建背景失败：{e}")
-            # 返回纯色背景
-            return None
+    def _create_gradient_background(self, size: tuple, index: int) -> Image:
+        """创建渐变背景（不同片段不同颜色）"""
+        from PIL import Image, ImageDraw
+        
+        # 多种配色方案，根据index循环使用
+        color_schemes = [
+            # 蓝紫渐变
+            [(60, 80, 150), (120, 80, 200)],
+            # 橙红渐变
+            [(200, 80, 60), (240, 120, 80)],
+            # 绿蓝渐变
+            [(40, 150, 120), (80, 180, 200)],
+            # 紫粉渐变
+            [(150, 60, 150), (200, 100, 180)],
+            # 深蓝渐变
+            [(30, 60, 100), (60, 100, 150)]
+        ]
+        
+        scheme = color_schemes[index % len(color_schemes)]
+        start_color, end_color = scheme
+        
+        # 创建渐变
+        img = Image.new('RGB', size)
+        draw = ImageDraw.Draw(img)
+        
+        for i in range(size[1]):
+            ratio = i / size[1]
+            color = tuple(
+                int(start_color[j] + (end_color[j] - start_color[j]) * ratio)
+                for j in range(3)
+            )
+            draw.line([(0, i), (size[0], i)], fill=color)
+        
+        return img
+    
+    def _load_font(self, size: int):
+        """加载字体（多种尝试）"""
+        from PIL import ImageFont
+        
+        # 尝试多种字体
+        font_options = [
+            "msyh.ttc",      # 微软雅黑
+            "simhei.ttf",    # 黑体
+            "simsun.ttc",    # 宋体
+            "arial.ttf",     # Arial
+        ]
+        
+        for font_name in font_options:
+            try:
+                return ImageFont.truetype(font_name, size)
+            except:
+                continue
+        
+        # 都失败了用默认字体
+        return ImageFont.load_default()
+    
+    def _wrap_text(self, text: str, font, max_width: int) -> list:
+        """文字自动换行"""
+        from PIL import ImageDraw
+        
+        # 临时draw用于测量
+        temp_img = Image.new('RGB', (1, 1))
+        draw = ImageDraw.Draw(temp_img)
+        
+        words = list(text)  # 中文按字符分
+        lines = []
+        current_line = ""
+        
+        for word in words:
+            test_line = current_line + word
+            bbox = draw.textbbox((0, 0), test_line, font=font)
+            if bbox[2] - bbox[0] <= max_width:
+                current_line = test_line
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = word
+        
+        if current_line:
+            lines.append(current_line)
+        
+        # 限制最多5行
+        return lines[:5] if lines else [text]
     
     async def add_subtitle(
         self,
