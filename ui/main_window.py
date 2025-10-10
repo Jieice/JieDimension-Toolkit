@@ -159,7 +159,7 @@ class MainWindow(ctk.CTk):
         
         # 状态指示区域
         status_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        status_frame.grid(row=current_row+3, column=0, padx=15, pady=(5, 10), sticky="ew")
+        status_frame.grid(row=current_row+3, column=0, padx=15, pady=(5, 5), sticky="ew")
         
         # AI状态
         self.ai_status_label = ctk.CTkLabel(
@@ -179,14 +179,14 @@ class MainWindow(ctk.CTk):
         )
         self.db_status_label.pack(anchor="w", pady=1)
         
-        # 版权信息
+        # 版权信息（放在最底部）
         copyright_label = ctk.CTkLabel(
             self.sidebar,
             text="© 2025 JieDimension Studio",
-            font=ctk.CTkFont(size=10),
+            font=ctk.CTkFont(size=9),
             text_color="gray50"
         )
-        copyright_label.grid(row=12, column=0, padx=20, pady=(0, 20))
+        copyright_label.grid(row=current_row+4, column=0, padx=15, pady=(5, 15), sticky="s")
     
     def _create_content_area(self):
         """创建内容区域"""
