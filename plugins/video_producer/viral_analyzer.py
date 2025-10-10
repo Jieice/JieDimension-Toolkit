@@ -127,6 +127,8 @@ class ViralAnalyzer:
             return "AI未配置"
         
         try:
+            from core.ai_engine import TaskComplexity
+            
             meta_info = ""
             if metadata:
                 meta_info = f"\n播放量：{metadata.get('play', 0)}\n点赞：{metadata.get('like', 0)}"
@@ -145,14 +147,15 @@ class ViralAnalyzer:
             
             result = await self.ai_engine.generate(
                 prompt=prompt,
-                complexity="SIMPLE"
+                complexity=TaskComplexity.SIMPLE
             )
             
-            return result
+            # 获取文本内容
+            return result.content if hasattr(result, 'content') else str(result)
             
         except Exception as e:
             logger.error(f"AI分析标题失败：{e}")
-            return "AI分析失败"
+            return f"AI分析失败: {str(e)}"
     
     def _calculate_title_score(self, analysis: Dict) -> int:
         """计算标题吸引力评分（0-100）"""
@@ -339,7 +342,7 @@ class ViralAnalyzer:
             
             formula = await self.ai_engine.generate(
                 prompt=prompt,
-                complexity="COMPLEX"
+                complexity=TaskComplexity.COMPLEX
             )
             
             return {

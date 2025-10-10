@@ -5,6 +5,7 @@ AI内容分析模块
 
 from typing import List, Dict, Any
 import logging
+from core.ai_engine import TaskComplexity
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +53,12 @@ class AIContentAnalyzer:
             
             result = await self.ai_engine.generate(
                 prompt=prompt,
-                complexity="MEDIUM"
+                complexity=TaskComplexity.MEDIUM
             )
             
-            # 解析结果
-            points = [line.strip() for line in result.split('\n') if line.strip()]
+            # 解析结果（AIResponse对象）
+            content = result.content if hasattr(result, 'content') else str(result)
+            points = [line.strip() for line in content.split('\n') if line.strip()]
             points = points[:num_points]
             
             logger.info(f"✅ 提取{len(points)}个要点")
@@ -98,10 +100,13 @@ class AIContentAnalyzer:
 
 直接输出脚本文本，不要多余说明。"""
             
-            script = await self.ai_engine.generate(
+            script_result = await self.ai_engine.generate(
                 prompt=prompt,
-                complexity="MEDIUM"
+                complexity=TaskComplexity.MEDIUM
             )
+            
+            # 获取脚本文本
+            script = script_result.content if hasattr(script_result, 'content') else str(script_result)
             
             # 分割成片段（每15秒一段）
             segments = self._split_script(script, num_segments=4)
@@ -171,10 +176,12 @@ class AIContentAnalyzer:
             
             result = await self.ai_engine.generate(
                 prompt=prompt,
-                complexity="SIMPLE"
+                complexity=TaskComplexity.SIMPLE
             )
             
-            titles = [line.strip() for line in result.split('\n') if line.strip()]
+            # 获取文本内容
+            content = result.content if hasattr(result, 'content') else str(result)
+            titles = [line.strip() for line in content.split('\n') if line.strip()]
             
             logger.info(f"✅ 生成{len(titles)}个标题")
             return titles[:5]
@@ -211,10 +218,13 @@ class AIContentAnalyzer:
 
 简洁回答。"""
             
-            analysis = await self.ai_engine.generate(
+            analysis_result = await self.ai_engine.generate(
                 prompt=prompt,
-                complexity="SIMPLE"
+                complexity=TaskComplexity.SIMPLE
             )
+            
+            # 获取分析文本
+            analysis = analysis_result.content if hasattr(analysis_result, 'content') else str(analysis_result)
             
             return {
                 'transcript': transcript,
