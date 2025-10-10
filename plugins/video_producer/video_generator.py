@@ -33,7 +33,11 @@ class VideoGenerator:
         script_segments: List[str],
         title: str = "",
         bgm_path: Optional[str] = None,
-        output_name: str = "output.mp4"
+        output_name: str = "output.mp4",
+        font_name: str = "微软雅黑",
+        font_size: int = 70,
+        use_emoji: bool = True,
+        bg_style: str = "渐变"
     ) -> str:
         """
         生成图文视频
@@ -70,8 +74,8 @@ class VideoGenerator:
                 img = self._create_gradient_background(self.resolution, i)
                 draw = ImageDraw.Draw(img)
                 
-                # 加载字体（多种尝试）
-                font = self._load_font(70)  # 大一点的字体
+                # 加载字体（使用参数）
+                font = self._load_font(font_size, font_name)
                 
                 # 计算文字位置（居中）
                 # 处理多行文字
@@ -100,7 +104,29 @@ class VideoGenerator:
                     draw.text((x, y), line, font=font, fill='white')
                 
                 # 添加序号标记（左上角）
-                draw.text((40, 40), f"{i+1}/{len(script_segments)}", font=self._load_font(30), fill=(255, 255, 255, 200))
+                draw.text((40, 40), f"{i+1}/{len(script_segments)}", font=self._load_font(30, font_name), fill=(255, 255, 255, 200))
+                
+                # 添加表情包装饰（如果开启）
+                if use_emoji:
+                    emoji = self._get_emoji_for_text(text)
+                    if emoji:
+                        try:
+                            emoji_img = Image.open(emoji).convert("RGBA")
+                            # 调整大小
+                            emoji_img = emoji_img.resize((200, 200), Image.Resampling.LANCZOS)
+                            # 粘贴到顶部中央（透明背景）
+                            emoji_x = (self.resolution[0] - 200) // 2
+                            emoji_y = 150
+                            # 转换RGBA到RGB背景
+                            if emoji_img.mode == 'RGBA':
+                                # 创建白色背景
+                                bg = Image.new('RGB', emoji_img.size, (255, 255, 255))
+                                bg.paste(emoji_img, mask=emoji_img.split()[3])  # 使用alpha通道
+                                img.paste(bg, (emoji_x, emoji_y))
+                            else:
+                                img.paste(emoji_img, (emoji_x, emoji_y))
+                        except Exception as e:
+                            logger.warning(f"添加表情失败: {e}")
                 
                 # 保存临时图片
                 temp_img_path = self.output_dir / f"temp_{i}.png"
@@ -171,26 +197,65 @@ class VideoGenerator:
         
         return img
     
-    def _load_font(self, size: int):
+    def _load_font(self, size: int, font_name: str = "微软雅黑"):
         """加载字体（多种尝试）"""
         from PIL import ImageFont
         
-        # 尝试多种字体
-        font_options = [
-            "msyh.ttc",      # 微软雅黑
-            "simhei.ttf",    # 黑体
-            "simsun.ttc",    # 宋体
-            "arial.ttf",     # Arial
-        ]
+        # 字体映射
+        font_map = {
+            "微软雅黑": ["msyh.ttc", "msyh.ttf"],
+            "黑体": ["simhei.ttf", "SimHei.ttf"],
+            "宋体": ["simsun.ttc", "simsun.ttf"],
+            "楷体": ["simkai.ttf", "kaiti.ttf"]
+        }
         
-        for font_name in font_options:
+        # 尝试指定字体
+        for font_file in font_map.get(font_name, []):
             try:
-                return ImageFont.truetype(font_name, size)
+                return ImageFont.truetype(font_file, size)
             except:
                 continue
         
+        # 尝试所有字体
+        for font_list in font_map.values():
+            for font_file in font_list:
+                try:
+                    return ImageFont.truetype(font_file, size)
+                except:
+                    continue
+        
         # 都失败了用默认字体
         return ImageFont.load_default()
+    
+    def _get_emoji_for_text(self, text: str) -> Optional[str]:
+        """根据文本内容选择合适的表情"""
+        from plugins.video_producer.asset_manager import AssetManager
+        
+        asset_mgr = AssetManager()
+        emojis = asset_mgr.get_emojis()
+        
+        if not emojis:
+            return None
+        
+        # 简单匹配（TODO: AI智能匹配）
+        keywords_emoji_map = {
+            "好": ["👍", "😊", "🎉"],
+            "技巧": ["💡", "🔧", "⚡"],
+            "方法": ["📝", "✨", "🎯"],
+            "第一": ["1️⃣", "🥇"],
+            "第二": ["2️⃣", "🥈"],
+            "简单": ["😄", "👌"],
+            "记得": ["📌", "⭐"]
+        }
+        
+        # 尝试匹配关键词
+        for keyword, emoji_list in keywords_emoji_map.items():
+            if keyword in text:
+                # TODO: 返回实际的表情包文件
+                # 现在先返回None，需要先有表情包素材
+                return None
+        
+        return None
     
     def _wrap_text(self, text: str, font, max_width: int) -> list:
         """文字自动换行"""
