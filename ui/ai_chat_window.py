@@ -220,8 +220,8 @@ AI助手:"""
             
             # 检查是否需要调用工具
             if "[TOOL:" in reply:
-                # 解析工具调用
-                tool_result = loop.run_until_complete(self._execute_tool_from_reply(reply))
+                # 解析工具调用（传入用户消息用于提取参数）
+                tool_result = loop.run_until_complete(self._execute_tool_from_reply(reply, user_message))
                 self._add_ai_message(tool_result)
             else:
                 # 普通回复
@@ -236,25 +236,61 @@ AI助手:"""
             if loop:
                 loop.close()
     
-    async def _execute_tool_from_reply(self, reply: str) -> str:
+    async def _execute_tool_from_reply(self, reply: str, user_message: str = "") -> str:
         """从AI回复中解析并执行工具"""
         try:
             from core.tool_executor import get_tool_executor
             tool_executor = get_tool_executor()
             
-            # 简单解析（TODO: 改进解析逻辑）
-            if "scrape_bilibili_hot" in reply:
-                videos = await tool_executor.execute_tool("scrape_bilibili_hot", {"limit": 5})
-                if videos.get('success'):
+            # 改进的解析逻辑
+            if "generate_xiaohongshu_title" in reply:
+                # 从用户消息提取主题
+                topic = user_message.replace("帮我生成", "").replace("小红书标题", "").replace("主题是", "").strip()
+                if not topic:
+                    topic = "美食"  # 默认
+                
+                result = await tool_executor.execute_tool(
+                    "generate_xiaohongshu_title",
+                    {"topic": topic, "style": "种草"}
+                )
+                
+                if result.get('success'):
+                    titles = result['result']
+                    result_text = f"✅ 已生成小红书标题（主题：{topic}）：\n\n"
+                    for i, title in enumerate(titles, 1):
+                        result_text += f"{i}. {title}\n"
+                    return result_text
+            
+            elif "scrape_bilibili_hot" in reply or "B站热门" in reply:
+                result = await tool_executor.execute_tool("scrape_bilibili_hot", {"limit": 5})
+                if result.get('success'):
+                    videos = result['result']
                     result_text = "✅ 已抓取B站热门视频：\n\n"
-                    for i, v in enumerate(videos['result'][:3], 1):
+                    for i, v in enumerate(videos[:3], 1):
                         result_text += f"{i}. {v.get('title')}\n"
-                        result_text += f"   {v.get('play'):,}播放\n\n"
+                        result_text += f"   {v.get('play'):,}播放 | {v.get('like'):,}点赞\n\n"
                     return result_text
             
             elif "analyze_viral_title" in reply:
-                # TODO: 从用户消息提取标题
-                return "请提供要分析的标题"
+                return "请提供要分析的标题，例如：分析标题'XXXX'"
+            
+            elif "generate_video_script" in reply:
+                # 提取主题
+                topic = user_message.replace("生成", "").replace("脚本", "").replace("视频", "").strip()
+                result = await tool_executor.execute_tool(
+                    "generate_video_script",
+                    {"topic": topic, "duration": 60}
+                )
+                
+                if result.get('success'):
+                    script = result['result']
+                    return f"✅ 视频脚本已生成：\n\n{script.get('full_script', '')}"
+            
+            elif "get_statistics" in reply or "统计" in reply:
+                result = await tool_executor.execute_tool("get_statistics", {})
+                if result.get('success'):
+                    stats = result['result']
+                    return f"📊 统计数据：\n总生成：{stats.get('total_generated')}\n成功率：{stats.get('success_rate')}%\n今日：{stats.get('today')}"
             
             else:
                 return reply
