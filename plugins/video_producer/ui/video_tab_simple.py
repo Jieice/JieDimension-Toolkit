@@ -258,6 +258,16 @@ class VideoProductionTabSimple(ctk.CTkFrame):
         
         threading.Thread(target=work, daemon=True).start()
     
+    def _open_assets(self):
+        """打开素材库"""
+        import os
+        asset_dir = os.path.abspath("data/assets")
+        if os.path.exists(asset_dir):
+            os.startfile(asset_dir)
+            self._show_output("📦 素材库已打开！\n\n将表情包/背景/音乐放到对应文件夹")
+        else:
+            self._show_output("❌ 素材目录不存在")
+    
     def _generate(self):
         """生成脚本"""
         topic = self.topic_entry.get().strip()
