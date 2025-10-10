@@ -58,48 +58,42 @@ class VideoGenerator:
             
             logger.info(f"开始生成视频：{len(script_segments)}个片段")
             
-            clips = []
+            # 简化实现：使用Pillow生成图片，然后合成视频
+            from PIL import Image, ImageDraw, ImageFont
             
-            # 生成每个文字片段的视频
+            image_clips = []
+            
+            # 为每个文字生成图片
             for i, text in enumerate(script_segments):
-                # 创建文字图层
-                txt_clip = TextClip(
-                    text,
-                    fontsize=60,
-                    color='white',
-                    font='SimHei',  # 黑体
-                    size=self.resolution,
-                    method='caption',
-                    align='center'
-                )
+                # 创建图片
+                img = Image.new('RGB', self.resolution, color=(30, 40, 60))
+                draw = ImageDraw.Draw(img)
                 
-                # 创建背景（纯色或图片）
-                bg_clip = ImageClip(
-                    self._create_background(self.resolution),
-                    duration=self.duration_per_slide
-                )
+                # 使用默认字体
+                try:
+                    font = ImageFont.truetype("msyh.ttc", 60)  # 微软雅黑
+                except:
+                    font = ImageFont.load_default()
                 
-                # 合成
-                video_clip = CompositeVideoClip([
-                    bg_clip,
-                    txt_clip.set_position('center')
-                ]).set_duration(self.duration_per_slide)
+                # 文字居中
+                bbox = draw.textbbox((0, 0), text, font=font)
+                text_width = bbox[2] - bbox[0]
+                text_height = bbox[3] - bbox[1]
+                x = (self.resolution[0] - text_width) // 2
+                y = (self.resolution[1] - text_height) // 2
                 
-                clips.append(video_clip)
+                draw.text((x, y), text, font=font, fill='white')
+                
+                # 保存临时图片
+                temp_img_path = self.output_dir / f"temp_{i}.png"
+                img.save(temp_img_path)
+                
+                # 创建图片片段
+                img_clip = ImageClip(str(temp_img_path), duration=self.duration_per_slide)
+                image_clips.append(img_clip)
             
             # 合并所有片段
-            final_video = concatenate_videoclips(clips, method="compose")
-            
-            # 添加背景音乐
-            if bgm_path and os.path.exists(bgm_path):
-                audio = AudioFileClip(bgm_path)
-                # 循环或裁剪音频以匹配视频长度
-                if audio.duration < final_video.duration:
-                    audio = audio.audio_loop(duration=final_video.duration)
-                else:
-                    audio = audio.subclip(0, final_video.duration)
-                
-                final_video = final_video.set_audio(audio)
+            final_video = concatenate_videoclips(image_clips, method="compose")
             
             # 输出视频
             output_path = self.output_dir / output_name
@@ -107,8 +101,15 @@ class VideoGenerator:
                 str(output_path),
                 fps=self.fps,
                 codec='libx264',
-                audio_codec='aac'
+                preset='ultrafast',  # 加快速度
+                logger=None  # 减少日志输出
             )
+            
+            # 清理临时图片
+            for i in range(len(script_segments)):
+                temp_img = self.output_dir / f"temp_{i}.png"
+                if temp_img.exists():
+                    temp_img.unlink()
             
             logger.info(f"✅ 视频生成成功：{output_path}")
             return str(output_path)
