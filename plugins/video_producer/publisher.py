@@ -3,7 +3,7 @@
 自动发布视频到B站、抖音
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 import logging
 import asyncio
 
