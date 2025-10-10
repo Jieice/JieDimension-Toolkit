@@ -92,46 +92,76 @@ class MainWindow(ctk.CTk):
         separator = ctk.CTkFrame(self.sidebar, height=2, fg_color="gray30")
         separator.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
         
-        # 菜单按钮
+        # 菜单按钮和分组状态
         self.menu_buttons = []
+        self.group_expanded = {}  # 分组展开状态
+        self.group_items = {}  # 分组包含的菜单项
         
         # 重组菜单：分离文章发布和商品发布
         menus = [
             ("🏠 仪表板", self.show_dashboard, None),
             ("separator", None, "📝 文章内容"),
-            ("📝 小红书", self.show_xiaohongshu, None),
-            ("📖 知乎", self.show_zhihu, None),
-            ("🎬 B站", self.show_bilibili, None),
-            ("🚀 批量文章", self.show_batch_publish, None),
+            ("📝 小红书", self.show_xiaohongshu, "文章内容"),
+            ("📖 知乎", self.show_zhihu, "文章内容"),
+            ("🎬 B站", self.show_bilibili, "文章内容"),
+            ("🚀 批量文章", self.show_batch_publish, "文章内容"),
             ("separator", None, "📦 商品发布"),
-            ("📦 闲鱼商品", self.show_xianyu, None),
-            ("📊 商品管理", self.show_management, None),
+            ("📦 闲鱼商品", self.show_xianyu, "商品发布"),
+            ("📊 商品管理", self.show_management, "商品发布"),
             ("separator", None, "🎥 视频制作"),
-            ("🎬 视频生产", self.show_video_production, None),
-            ("🤖 AI助手", self.show_ai_assistant, None),
+            ("🎬 视频生产", self.show_video_production, "视频制作"),
+            ("🤖 AI助手", self.show_ai_assistant, "视频制作"),
             ("separator", None, "🔧 工具"),
-            ("🌐 浏览器", self.show_browser_control, None),
-            ("🔐 API配置", self.show_api_config, None),
-            ("⚙️ 设置", self.show_settings, None),
+            ("🌐 浏览器", self.show_browser_control, "工具"),
+            ("🔐 API配置", self.show_api_config, "工具"),
+            ("⚙️ 设置", self.show_settings, "工具"),
         ]
         
         current_row = 2
+        current_group = None
+        
         for item in menus:
             if item[0] == "separator":
-                # 创建分组标签
+                # 创建可折叠的分组标签
                 if item[2]:  # 有标题
-                    label = ctk.CTkLabel(
-                        self.sidebar,
+                    group_name = item[2]
+                    self.group_expanded[group_name] = True  # 默认展开
+                    self.group_items[group_name] = []
+                    current_group = group_name
+                    
+                    # 创建分组标题（可点击）
+                    group_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+                    group_frame.grid(row=current_row, column=0, padx=15, pady=(15, 5), sticky="ew")
+                    
+                    # 展开/收缩图标
+                    icon_label = ctk.CTkLabel(
+                        group_frame,
+                        text="▼",
+                        font=ctk.CTkFont(size=10),
+                        text_color="gray50",
+                        cursor="hand2"
+                    )
+                    icon_label.pack(side="left", padx=(5, 5))
+                    
+                    # 标题
+                    title_label = ctk.CTkLabel(
+                        group_frame,
                         text=item[2],
                         font=ctk.CTkFont(size=12, weight="bold"),
                         text_color="gray50",
-                        anchor="w"
+                        cursor="hand2"
                     )
-                    label.grid(row=current_row, column=0, padx=20, pady=(15, 5), sticky="w")
+                    title_label.pack(side="left")
+                    
+                    # 绑定点击事件
+                    icon_label.bind("<Button-1>", lambda e, g=group_name, i=icon_label: self._toggle_group(g, i))
+                    title_label.bind("<Button-1>", lambda e, g=group_name, i=icon_label: self._toggle_group(g, i))
+                    group_frame.bind("<Button-1>", lambda e, g=group_name, i=icon_label: self._toggle_group(g, i))
+                    
                     current_row += 1
             else:
                 # 创建菜单按钮
-                text, command, _ = item
+                text, command, group = item
                 btn = ctk.CTkButton(
                     self.sidebar,
                     text=text,
@@ -145,6 +175,11 @@ class MainWindow(ctk.CTk):
                 )
                 btn.grid(row=current_row, column=0, padx=15, pady=3, sticky="ew")
                 self.menu_buttons.append(btn)
+                
+                # 记录分组关系
+                if current_group:
+                    self.group_items[current_group].append(btn)
+                
                 current_row += 1
         
         # 底部留白（让菜单可以滚动）
@@ -208,6 +243,23 @@ class MainWindow(ctk.CTk):
                 btn.configure(fg_color=("gray75", "gray25"))
             else:
                 btn.configure(fg_color="transparent")
+    
+    def _toggle_group(self, group_name: str, icon_label):
+        """展开/收缩分组"""
+        is_expanded = self.group_expanded.get(group_name, True)
+        
+        # 切换状态
+        self.group_expanded[group_name] = not is_expanded
+        
+        # 更新图标
+        icon_label.configure(text="▼" if not is_expanded else "▶")
+        
+        # 显示/隐藏该分组下的菜单项
+        for btn in self.group_items.get(group_name, []):
+            if not is_expanded:
+                btn.grid()  # 展开
+            else:
+                btn.grid_remove()  # 收缩
     
     def _create_mini_dashboard(self, row):
         """创建左下角迷你仪表盘"""
