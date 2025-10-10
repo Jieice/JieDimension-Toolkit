@@ -62,9 +62,9 @@ class VideoProductionTabSimple(ctk.CTkFrame):
         )
         preset_menu.pack(side="left")
         
-        # 详细设置（默认隐藏，点击"高级"展开）
+        # 详细设置（默认隐藏）
         self.show_advanced = False
-        advanced_btn = ctk.CTkButton(
+        self.advanced_btn = ctk.CTkButton(
             settings_frame,
             text="▶ 高级设置",
             command=self._toggle_advanced,
@@ -73,16 +73,50 @@ class VideoProductionTabSimple(ctk.CTkFrame):
             height=28,
             font=ctk.CTkFont(size=12)
         )
-        advanced_btn.pack(padx=15, pady=(0, 15), anchor="w")
+        self.advanced_btn.pack(padx=15, pady=(0, 5), anchor="w")
         
         # 高级设置区域（默认隐藏）
         self.advanced_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
-        # 不pack，点击时才显示
         
-        # 3. 发布
+        # 字体
+        ctk.CTkLabel(self.advanced_frame, text="字体:").pack(padx=5, pady=(5, 3), anchor="w")
+        self.font_var = ctk.StringVar(value="微软雅黑")
+        ctk.CTkOptionMenu(self.advanced_frame, variable=self.font_var, values=["微软雅黑", "黑体", "宋体"]).pack(fill="x", padx=5, pady=(0, 8))
+        
+        # 字体大小
+        size_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        size_frame.pack(fill="x", padx=5, pady=(0, 8))
+        ctk.CTkLabel(size_frame, text="大小:").pack(side="left")
+        self.font_size_var = ctk.IntVar(value=70)
+        ctk.CTkSlider(size_frame, from_=40, to=120, variable=self.font_size_var, width=100).pack(side="left", padx=8)
+        ctk.CTkLabel(size_frame, textvariable=self.font_size_var, width=35).pack(side="left")
+        
+        # 背景
+        ctk.CTkLabel(self.advanced_frame, text="背景:").pack(padx=5, pady=(0, 3), anchor="w")
+        self.bg_var = ctk.StringVar(value="渐变")
+        ctk.CTkOptionMenu(self.advanced_frame, variable=self.bg_var, values=["渐变", "纯色"]).pack(fill="x", padx=5, pady=(0, 10))
+        # 默认不显示
+        
+        # 3. 参考热门（可选）
+        ref_frame = self._create_section(left_panel, "📝 参考热门")
+        self.ref_source_var = ctk.StringVar(value="B站")
+        ctk.CTkOptionMenu(ref_frame, variable=self.ref_source_var, values=["B站", "知乎", "抖音"]).pack(fill="x", padx=15, pady=(0, 15))
+        
+        # 4. 发布
         publish_frame = self._create_section(left_panel, "🚀 发布平台")
         self.bilibili_var = ctk.BooleanVar(value=True)
-        ctk.CTkCheckBox(publish_frame, text="B站", variable=self.bilibili_var).pack(padx=15, pady=5, anchor="w")
+        ctk.CTkCheckBox(publish_frame, text="B站", variable=self.bilibili_var).pack(padx=15, pady=(5, 10), anchor="w")
+        
+        # 素材库按钮
+        asset_btn = ctk.CTkButton(
+            left_panel,
+            text="📦 管理素材库",
+            command=self._open_assets,
+            fg_color="transparent",
+            border_width=1,
+            height=35
+        )
+        asset_btn.pack(fill="x", padx=15, pady=(10, 20))
         
         # === 右栏：主工作区 ===
         right_panel = ctk.CTkFrame(self)
@@ -147,8 +181,16 @@ class VideoProductionTabSimple(ctk.CTkFrame):
     
     def _toggle_advanced(self):
         """切换高级设置"""
-        # TODO: 实现折叠/展开
-        pass
+        self.show_advanced = not self.show_advanced
+        
+        if self.show_advanced:
+            # 展开
+            self.advanced_frame.pack(fill="x", padx=15, pady=(0, 15))
+            self.advanced_btn.configure(text="▼ 高级设置")
+        else:
+            # 收起
+            self.advanced_frame.pack_forget()
+            self.advanced_btn.configure(text="▶ 高级设置")
     
     def _apply_preset(self, preset_name):
         """应用预设方案"""
