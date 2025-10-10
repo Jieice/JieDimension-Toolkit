@@ -559,8 +559,8 @@ class MainWindow(ctk.CTk):
         self._highlight_menu(7)  # 修正索引（视频生产）
         
         try:
-            from plugins.video_producer.ui.video_tab import VideoProductionTab
-            video_tab = VideoProductionTab(self.content)
+            from plugins.video_producer.ui.video_tab_simple import VideoProductionTabSimple
+            video_tab = VideoProductionTabSimple(self.content)
             video_tab.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
         except Exception as e:
             error_label = ctk.CTkLabel(
