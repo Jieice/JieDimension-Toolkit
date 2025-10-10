@@ -158,9 +158,29 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         ctk.CTkOptionMenu(frame, variable=self.duration_var, values=["30秒", "60秒", "90秒"]).grid(row=2, column=1, padx=15, pady=5, sticky="w")
         
         # 视频风格
-        ctk.CTkLabel(frame, text="视频风格:").grid(row=3, column=0, padx=15, pady=(5, 15), sticky="w")
+        ctk.CTkLabel(frame, text="视频风格:").grid(row=3, column=0, padx=15, pady=5, sticky="w")
         self.style_var = ctk.StringVar(value="解说")
-        ctk.CTkOptionMenu(frame, variable=self.style_var, values=["解说", "吐槽", "严肃", "幽默"]).grid(row=3, column=1, padx=15, pady=(5, 15), sticky="w")
+        ctk.CTkOptionMenu(frame, variable=self.style_var, values=["解说", "吐槽", "严肃", "幽默"]).grid(row=3, column=1, padx=15, pady=5, sticky="w")
+        
+        # 字体选择
+        ctk.CTkLabel(frame, text="字体:").grid(row=4, column=0, padx=15, pady=5, sticky="w")
+        self.font_var = ctk.StringVar(value="微软雅黑")
+        ctk.CTkOptionMenu(frame, variable=self.font_var, values=["微软雅黑", "黑体", "宋体", "楷体"]).grid(row=4, column=1, padx=15, pady=5, sticky="w")
+        
+        # 字体大小
+        ctk.CTkLabel(frame, text="字体大小:").grid(row=5, column=0, padx=15, pady=5, sticky="w")
+        self.font_size_var = ctk.StringVar(value="70")
+        font_size_slider = ctk.CTkSlider(frame, from_=40, to=120, variable=self.font_size_var, width=150)
+        font_size_slider.grid(row=5, column=1, padx=15, pady=5, sticky="w")
+        
+        # 背景风格
+        ctk.CTkLabel(frame, text="背景风格:").grid(row=6, column=0, padx=15, pady=5, sticky="w")
+        self.bg_style_var = ctk.StringVar(value="渐变")
+        ctk.CTkOptionMenu(frame, variable=self.bg_style_var, values=["渐变", "纯色", "自定义图片"]).grid(row=6, column=1, padx=15, pady=5, sticky="w")
+        
+        # 表情包开关
+        self.use_emoji_var = ctk.BooleanVar(value=True)
+        ctk.CTkCheckBox(frame, text="添加表情包装饰", variable=self.use_emoji_var).grid(row=7, column=0, columnspan=2, padx=15, pady=(5, 15), sticky="w")
     
     def _create_publish_section(self):
         """创建发布设置区域"""

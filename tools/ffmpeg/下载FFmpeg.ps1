@@ -42,11 +42,13 @@ try {
         Write-Host "========================================" -ForegroundColor Green
         Write-Host "  安装完成！可以生成视频了！" -ForegroundColor Green
         Write-Host "========================================" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "❌ 未找到ffmpeg.exe" -ForegroundColor Red
     }
     
-} catch {
+}
+catch {
     Write-Host ""
     Write-Host "❌ 下载失败：$($_.Exception.Message)" -ForegroundColor Red
     Write-Host ""
