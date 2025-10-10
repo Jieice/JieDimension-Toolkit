@@ -35,34 +35,97 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         )
         title_label.grid(row=0, column=0, padx=20, pady=(20, 10))
         
-        # 内容源选择
+        # 工作流程选择
+        self._create_workflow_section()
+        
+        # 内容输入区域（新增）
+        self._create_content_input_section()
+        
+        # 内容源选择（可选）
         self._create_source_section()
         
-        # 操作按钮（提前到这里）
+        # 操作按钮
         self._create_actions()
         
-        # 结果显示（中间位置）
-        self._create_result_section()
-        
-        # 爆款分析选项
-        self._create_analysis_section()
+        # 脚本编辑区域（新增）
+        self._create_script_editor()
         
         # 视频生成设置
         self._create_generation_section()
         
         # 发布设置
         self._create_publish_section()
+        
+        # 爆款分析选项（可折叠）
+        self._create_analysis_section()
     
-    def _create_source_section(self):
-        """创建内容源选择区域"""
-        frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
+    def _create_workflow_section(self):
+        """创建工作流程选择"""
+        frame = ctk.CTkFrame(self, fg_color=("gray85", "gray15"))
         frame.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        
+        label = ctk.CTkLabel(
+            frame,
+            text="🔄 工作流程",
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        label.grid(row=0, column=0, padx=15, pady=(15, 10), sticky="w")
+        
+        self.workflow_var = ctk.StringVar(value="自定义")
+        
+        workflows = [
+            ("自定义创作", "自定义"),
+            ("参考热门", "参考"),
+            ("完全自动", "自动")
+        ]
+        
+        for i, (text, value) in enumerate(workflows):
+            radio = ctk.CTkRadioButton(
+                frame,
+                text=text,
+                variable=self.workflow_var,
+                value=value
+            )
+            radio.grid(row=1, column=i, padx=15, pady=(0, 15), sticky="w")
+    
+    def _create_content_input_section(self):
+        """创建内容输入区域"""
+        frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
+        frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
         frame.grid_columnconfigure(1, weight=1)
         
         label = ctk.CTkLabel(
             frame,
-            text="📝 内容源",
+            text="✍️ 内容输入",
             font=ctk.CTkFont(size=16, weight="bold")
+        )
+        label.grid(row=0, column=0, columnspan=2, padx=15, pady=(15, 10), sticky="w")
+        
+        # 视频主题
+        ctk.CTkLabel(frame, text="视频主题:").grid(row=1, column=0, padx=15, pady=5, sticky="w")
+        self.topic_entry = ctk.CTkEntry(frame, placeholder_text="例如：手机省电技巧", width=300)
+        self.topic_entry.grid(row=1, column=1, padx=15, pady=5, sticky="w")
+        
+        # 生成脚本按钮
+        gen_script_btn = ctk.CTkButton(
+            frame,
+            text="🤖 AI生成脚本",
+            command=self._generate_script,
+            width=120,
+            height=30
+        )
+        gen_script_btn.grid(row=2, column=0, columnspan=2, padx=15, pady=(5, 15))
+    
+    def _create_source_section(self):
+        """创建内容源选择区域（可选，用于参考）"""
+        frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
+        frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        frame.grid_columnconfigure(1, weight=1)
+        
+        label = ctk.CTkLabel(
+            frame,
+            text="📝 参考热门（可选）",
+            font=ctk.CTkFont(size=14, weight="bold")
         )
         label.grid(row=0, column=0, columnspan=3, padx=15, pady=(15, 10), sticky="w")
         
@@ -100,9 +163,9 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         category_menu.grid(row=2, column=1, padx=15, pady=(10, 15), sticky="w")
     
     def _create_analysis_section(self):
-        """创建爆款分析区域"""
+        """创建爆款分析区域（结果显示）"""
         frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
-        frame.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        frame.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
         
         label = ctk.CTkLabel(
             frame,
@@ -137,7 +200,7 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
     def _create_generation_section(self):
         """创建视频生成区域"""
         frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
-        frame.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        frame.grid(row=6, column=0, padx=20, pady=10, sticky="ew")
         frame.grid_columnconfigure(1, weight=1)
         
         label = ctk.CTkLabel(
@@ -204,7 +267,7 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
     def _create_publish_section(self):
         """创建发布设置区域"""
         frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
-        frame.grid(row=6, column=0, padx=20, pady=(10, 30), sticky="ew")  # 底部留30px空间
+        frame.grid(row=7, column=0, padx=20, pady=(10, 30), sticky="ew")  # 底部留30px空间
         
         label = ctk.CTkLabel(
             frame,
@@ -229,10 +292,40 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
             variable=self.publish_douyin_var
         ).grid(row=2, column=0, padx=15, pady=(5, 15), sticky="w")
     
-    def _create_actions(self):
-        """创建操作按钮（放在顶部，避免被遮挡）"""
+    def _create_script_editor(self):
+        """创建脚本编辑区域"""
         frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
-        frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        frame.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        
+        label = ctk.CTkLabel(
+            frame,
+            text="📝 视频脚本（可编辑）",
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        label.grid(row=0, column=0, padx=15, pady=(15, 10), sticky="w")
+        
+        # 脚本编辑框
+        self.script_text = ctk.CTkTextbox(
+            frame,
+            font=ctk.CTkFont(size=13),
+            wrap="word",
+            height=200
+        )
+        self.script_text.grid(row=1, column=0, padx=15, pady=(0, 10), sticky="ew")
+        
+        # 提示
+        hint = ctk.CTkLabel(
+            frame,
+            text="💡 每行一个片段，一行约5秒。可以直接编辑修改。",
+            font=ctk.CTkFont(size=11),
+            text_color="gray50"
+        )
+        hint.grid(row=2, column=0, padx=15, pady=(0, 15), sticky="w")
+    
+    def _create_actions(self):
+        """创建操作按钮"""
+        frame = ctk.CTkFrame(self, fg_color=("gray90", "gray20"))
+        frame.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
         frame.grid_columnconfigure(0, weight=1)
         
         # 提示标签
@@ -246,42 +339,40 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         buttons_frame = ctk.CTkFrame(frame, fg_color="transparent")
         buttons_frame.grid(row=1, column=0, padx=15, pady=(0, 15))
         
-        # 分析按钮
+        # 参考热门按钮（原分析爆款）
         self.analyze_btn = ctk.CTkButton(
             buttons_frame,
-            text="🔍 分析爆款",
+            text="🔍 参考热门",
             command=self._analyze_viral,
-            width=150,
+            width=140,
             height=45,
             font=ctk.CTkFont(size=14, weight="bold")
         )
         self.analyze_btn.pack(side="left", padx=5)
         
-        # 生成按钮
+        # 生成脚本按钮
+        self.gen_script_btn = ctk.CTkButton(
+            buttons_frame,
+            text="📝 生成脚本",
+            command=self._generate_script,
+            width=140,
+            height=45,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        self.gen_script_btn.pack(side="left", padx=5)
+        
+        # 生成视频按钮
         self.generate_btn = ctk.CTkButton(
             buttons_frame,
             text="🎬 生成视频",
             command=self._generate_video,
-            width=150,
+            width=140,
             height=45,
             fg_color="green",
             hover_color="darkgreen",
             font=ctk.CTkFont(size=14, weight="bold")
         )
         self.generate_btn.pack(side="left", padx=5)
-        
-        # 发布按钮
-        self.publish_btn = ctk.CTkButton(
-            buttons_frame,
-            text="🚀 一键发布",
-            command=self._publish_video,
-            width=150,
-            height=45,
-            fg_color="orange",
-            hover_color="darkorange",
-            font=ctk.CTkFont(size=14, weight="bold")
-        )
-        self.publish_btn.pack(side="left", padx=5)
     
     def _create_result_section(self):
         """创建结果显示区域"""
@@ -387,6 +478,51 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         thread = threading.Thread(target=self._do_generate_video, daemon=True)
         thread.start()
     
+    def _generate_script(self):
+        """生成脚本"""
+        topic = self.topic_entry.get().strip()
+        if not topic:
+            messagebox.showwarning("提示", "请输入视频主题")
+            return
+        
+        self.gen_script_btn.configure(state="disabled", text="生成中...")
+        
+        thread = threading.Thread(target=self._do_generate_script, args=(topic,), daemon=True)
+        thread.start()
+    
+    def _do_generate_script(self, topic: str):
+        """后台生成脚本"""
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            from plugins.video_producer.ai_analyzer import AIContentAnalyzer
+            from core.ai_engine import AIEngine
+            
+            analyzer = AIContentAnalyzer(AIEngine())
+            
+            # 生成要点
+            points = loop.run_until_complete(analyzer.extract_key_points(topic, num_points=5))
+            
+            # 生成脚本
+            script = loop.run_until_complete(analyzer.generate_video_script(points, style=self.style_var.get()))
+            
+            # 显示到编辑框（按行分割）
+            segments = script.get('segments', [])
+            self.script_text.delete("1.0", "end")
+            for seg in segments:
+                self.script_text.insert("end", seg + "\n")
+            
+            # 提示
+            messagebox.showinfo("成功", f"脚本已生成！共{len(segments)}个片段\n\n可以直接编辑修改，然后生成视频")
+            
+        except Exception as e:
+            messagebox.showerror("失败", f"脚本生成失败：{str(e)}")
+        finally:
+            self.gen_script_btn.configure(state="normal", text="📝 生成脚本")
+            if loop:
+                loop.close()
+    
     def _do_generate_video(self):
         """后台生成视频"""
         try:
@@ -394,17 +530,19 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
             asyncio.set_event_loop(loop)
             
             from plugins.video_producer.video_generator import VideoGenerator
-            from plugins.video_producer.ai_analyzer import AIContentAnalyzer
-            from core.ai_engine import AIEngine
             
-            # 测试脚本（TODO: 从分析结果生成）
-            test_segments = [
-                "今天分享一个超实用的技巧",
-                "这个方法效果非常好",
-                "第一步：打开设置",
-                "第二步：进行配置",
-                "就这么简单！记得点赞关注"
-            ]
+            # 从脚本编辑框获取脚本（每行一个片段）
+            script_content = self.script_text.get("1.0", "end").strip()
+            if not script_content:
+                self.script_text.insert("1.0", "请先生成或输入脚本！\n\n点击📝生成脚本，或手动输入")
+                return
+            
+            # 按行分割
+            script_segments = [line.strip() for line in script_content.split('\n') if line.strip()]
+            
+            if not script_segments:
+                messagebox.showwarning("提示", "脚本为空！")
+                return
             
             # 获取GUI参数
             font_name = self.font_var.get()
