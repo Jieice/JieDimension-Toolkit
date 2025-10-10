@@ -370,7 +370,7 @@ class MainWindow(ctk.CTk):
     def show_batch_publish(self):
         """显示批量发布模块"""
         self._clear_content()
-        self._highlight_menu(1)
+        self._highlight_menu(4)  # 修正索引（批量文章）
         
         try:
             from plugins.batch_publisher.ui.batch_tab import BatchPublishTab
@@ -389,7 +389,7 @@ class MainWindow(ctk.CTk):
     def show_xianyu(self):
         """显示闲鱼模块"""
         self._clear_content()
-        self._highlight_menu(2)
+        self._highlight_menu(5)  # 修正索引
         
         from plugins.xianyu.ui.publish_tab import XianyuPublishTab
         xianyu_tab = XianyuPublishTab(self.content)
@@ -398,7 +398,7 @@ class MainWindow(ctk.CTk):
     def show_xiaohongshu(self):
         """显示小红书模块"""
         self._clear_content()
-        self._highlight_menu(3)
+        self._highlight_menu(1)  # 修正索引
         
         try:
             from plugins.xiaohongshu.ui.xiaohongshu_tab import XiaohongshuTab
@@ -423,7 +423,7 @@ class MainWindow(ctk.CTk):
     def show_zhihu(self):
         """显示知乎模块"""
         self._clear_content()
-        self._highlight_menu(4)
+        self._highlight_menu(2)  # 修正索引
         
         try:
             from plugins.zhihu.ui.zhihu_tab import ZhihuTab
@@ -448,7 +448,7 @@ class MainWindow(ctk.CTk):
     def show_bilibili(self):
         """显示B站模块"""
         self._clear_content()
-        self._highlight_menu(5)
+        self._highlight_menu(3)  # 修正索引
         
         try:
             from plugins.bilibili.ui.bilibili_tab import BilibiliTab
@@ -557,7 +557,7 @@ class MainWindow(ctk.CTk):
     def show_video_production(self):
         """显示视频生产模块"""
         self._clear_content()
-        self._highlight_menu(9)  # 调整索引
+        self._highlight_menu(7)  # 修正索引（视频生产）
         
         try:
             from plugins.video_producer.ui.video_tab import VideoProductionTab
@@ -622,7 +622,7 @@ class MainWindow(ctk.CTk):
     def show_api_config(self):
         """显示API配置"""
         self._clear_content()
-        self._highlight_menu(9)
+        self._highlight_menu(9)  # API配置
         
         try:
             from ui.api_config_panel import APIConfigPanel
@@ -685,7 +685,7 @@ class MainWindow(ctk.CTk):
     def show_settings(self):
         """显示设置"""
         self._clear_content()
-        self._highlight_menu(10)
+        self._highlight_menu(10)  # 设置
         
         from ui.settings_window import SettingsPanel
         settings = SettingsPanel(self.content)

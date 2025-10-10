@@ -63,14 +63,27 @@ class AIChatWindow(ctk.CTkFrame):
         # 清空按钮
         clear_btn = ctk.CTkButton(
             header,
-            text="🗑️ 清空",
-            width=80,
+            text="🗑️",
+            width=35,
             height=35,
             command=self._clear_chat,
             fg_color="transparent",
-            border_width=1
+            hover_color=("gray70", "gray30")
         )
-        clear_btn.grid(row=0, column=2, padx=20, pady=15, sticky="e")
+        clear_btn.grid(row=0, column=2, padx=5, pady=15)
+        
+        # 关闭按钮
+        close_btn = ctk.CTkButton(
+            header,
+            text="✕",
+            width=35,
+            height=35,
+            command=self._close_window,
+            fg_color="transparent",
+            hover_color=("gray70", "gray30"),
+            font=ctk.CTkFont(size=16)
+        )
+        close_btn.grid(row=0, column=3, padx=(0, 15), pady=15)
         
         # 聊天显示区域（可滚动）
         self.chat_display = ctk.CTkTextbox(
@@ -348,4 +361,11 @@ AI助手:"""
         
         # 重新添加欢迎消息
         self._add_ai_message("聊天已清空。有什么我可以帮你的吗？")
+    
+    def _close_window(self):
+        """关闭窗口"""
+        # 获取父窗口并隐藏AI助手
+        parent = self.winfo_toplevel()
+        if hasattr(parent, 'toggle_ai_assistant'):
+            parent.toggle_ai_assistant()  # 切换到隐藏状态
 
