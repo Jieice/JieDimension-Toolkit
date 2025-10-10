@@ -49,6 +49,17 @@ class AIChatWindow(ctk.CTkFrame):
         )
         title.grid(row=0, column=0, padx=20, pady=15, sticky="w")
         
+        # AI引擎选择
+        self.ai_provider_var = ctk.StringVar(value="自动")
+        ai_selector = ctk.CTkOptionMenu(
+            header,
+            variable=self.ai_provider_var,
+            values=["自动", "Ollama", "Gemini", "Claude", "文心一言"],
+            width=120,
+            height=35
+        )
+        ai_selector.grid(row=0, column=1, padx=10, pady=15, sticky="e")
+        
         # 清空按钮
         clear_btn = ctk.CTkButton(
             header,
@@ -59,7 +70,7 @@ class AIChatWindow(ctk.CTkFrame):
             fg_color="transparent",
             border_width=1
         )
-        clear_btn.grid(row=0, column=1, padx=20, pady=15, sticky="e")
+        clear_btn.grid(row=0, column=2, padx=20, pady=15, sticky="e")
         
         # 聊天显示区域（可滚动）
         self.chat_display = ctk.CTkTextbox(
@@ -207,13 +218,34 @@ class AIChatWindow(ctk.CTkFrame):
 
 AI助手:"""
             
-            # 生成回复
-            result = loop.run_until_complete(
-                ai_engine.generate(
-                    prompt=prompt,
-                    complexity=TaskComplexity.MEDIUM
+            # 根据用户选择的AI引擎生成回复
+            selected_provider = self.ai_provider_var.get()
+            
+            if selected_provider == "自动":
+                # 自动选择（根据复杂度）
+                result = loop.run_until_complete(
+                    ai_engine.generate(
+                        prompt=prompt,
+                        complexity=TaskComplexity.MEDIUM
+                    )
                 )
-            )
+            else:
+                # 手动指定AI引擎
+                from core.ai_engine import AIProvider
+                provider_map = {
+                    "Ollama": AIProvider.OLLAMA,
+                    "Gemini": AIProvider.GEMINI,
+                    "Claude": AIProvider.CLAUDE,
+                    "文心一言": AIProvider.ERNIE
+                }
+                
+                provider = provider_map.get(selected_provider, AIProvider.OLLAMA)
+                result = loop.run_until_complete(
+                    ai_engine.generate_with_provider(
+                        prompt=prompt,
+                        provider=provider
+                    )
+                )
             
             # 获取回复文本
             reply = result.content if hasattr(result, 'content') else str(result)

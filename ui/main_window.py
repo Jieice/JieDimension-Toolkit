@@ -41,6 +41,10 @@ class MainWindow(ctk.CTk):
         # 默认显示仪表板
         self.show_dashboard()
         
+        # 创建浮动AI助手
+        self.floating_ai = None
+        self.after(1000, self._create_floating_ai)  # 延迟1秒创建
+        
         # 窗口关闭事件
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
     
@@ -556,23 +560,26 @@ class MainWindow(ctk.CTk):
             )
             error_label.place(relx=0.5, rely=0.5, anchor="center")
     
-    def show_ai_assistant(self):
-        """显示AI助手"""
-        self._clear_content()
-        self._highlight_menu(10)  # 调整索引
-        
+    def _create_floating_ai(self):
+        """创建浮动AI助手"""
         try:
-            from ui.ai_chat_window import AIChatWindow
-            chat_window = AIChatWindow(self.content)
-            chat_window.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
+            from ui.floating_ai_assistant import FloatingAIAssistant
+            self.floating_ai = FloatingAIAssistant(self)
         except Exception as e:
-            error_label = ctk.CTkLabel(
-                self.content,
-                text=f"❌ 加载失败：{str(e)}",
-                font=ctk.CTkFont(size=16),
-                text_color="red"
-            )
-            error_label.place(relx=0.5, rely=0.5, anchor="center")
+            print(f"创建浮动AI助手失败：{e}")
+    
+    def show_ai_assistant(self):
+        """显示/聚焦AI助手"""
+        if self.floating_ai and not self.floating_ai.winfo_exists():
+            # 窗口被关闭了，重新创建
+            self._create_floating_ai()
+        
+        if self.floating_ai:
+            self.floating_ai.show()  # 显示并置顶
+            self.floating_ai.focus()  # 聚焦
+        else:
+            # 如果创建失败，显示错误
+            messagebox.showwarning("提示", "AI助手窗口创建失败")
     
     def show_api_config(self):
         """显示API配置"""
