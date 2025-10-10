@@ -106,6 +106,9 @@ class MainWindow(ctk.CTk):
             ("separator", None, "📦 商品发布"),
             ("📦 闲鱼商品", self.show_xianyu, None),
             ("📊 商品管理", self.show_management, None),
+            ("separator", None, "🎥 视频制作"),
+            ("🎬 视频生产", self.show_video_production, None),
+            ("🤖 AI助手", self.show_ai_assistant, None),
             ("separator", None, "🔧 工具"),
             ("🌐 浏览器", self.show_browser_control, None),
             ("🔐 API配置", self.show_api_config, None),
@@ -472,10 +475,28 @@ class MainWindow(ctk.CTk):
             error_label.place(relx=0.5, rely=0.5, anchor="center")
             print(f"Error loading management: {e}")
     
+    def show_video_production(self):
+        """显示视频生产模块"""
+        self._clear_content()
+        self._highlight_menu(9)  # 调整索引
+        
+        try:
+            from plugins.video_producer.ui.video_tab import VideoProductionTab
+            video_tab = VideoProductionTab(self.content)
+            video_tab.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
+        except Exception as e:
+            error_label = ctk.CTkLabel(
+                self.content,
+                text=f"❌ 加载失败：{str(e)}",
+                font=ctk.CTkFont(size=16),
+                text_color="red"
+            )
+            error_label.place(relx=0.5, rely=0.5, anchor="center")
+    
     def show_ai_assistant(self):
         """显示AI助手"""
         self._clear_content()
-        self._highlight_menu(8)
+        self._highlight_menu(10)  # 调整索引
         
         placeholder = ctk.CTkLabel(
             self.content,

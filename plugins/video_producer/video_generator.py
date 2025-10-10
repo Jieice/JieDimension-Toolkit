@@ -46,12 +46,11 @@ class VideoGenerator:
         try:
             # 检查moviepy是否安装
             try:
-                from moviepy.editor import (
-                    TextClip, ImageClip, CompositeVideoClip,
-                    AudioFileClip, concatenate_videoclips
-                )
-            except ImportError:
-                logger.error("moviepy未安装，请运行：pip install moviepy")
+                # moviepy 2.x 简化导入
+                from moviepy import TextClip, ImageClip, CompositeVideoClip, AudioFileClip, concatenate_videoclips
+            except ImportError as e:
+                logger.error(f"moviepy导入失败：{e}")
+                logger.error("请确保已安装：pip install moviepy")
                 raise
             
             logger.info(f"开始生成视频：{len(script_segments)}个片段")
