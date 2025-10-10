@@ -368,7 +368,75 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         self.result_text.delete("1.0", "end")
         self.result_text.insert("1.0", "🎬 正在生成视频...\n请稍候...")
         
-        # TODO: 实际生成逻辑
+        # 禁用按钮
+        self.generate_btn.configure(state="disabled", text="生成中...")
+        
+        # 在后台线程运行
+        thread = threading.Thread(target=self._do_generate_video, daemon=True)
+        thread.start()
+    
+    def _do_generate_video(self):
+        """后台生成视频"""
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            from plugins.video_producer.video_generator import VideoGenerator
+            from plugins.video_producer.ai_analyzer import AIContentAnalyzer
+            from core.ai_engine import AIEngine
+            
+            # 测试脚本（TODO: 从分析结果生成）
+            test_segments = [
+                "今天分享一个超实用的技巧",
+                "这个方法效果非常好",
+                "第一步：打开设置",
+                "第二步：进行配置",
+                "就这么简单！记得点赞关注"
+            ]
+            
+            # 获取GUI参数
+            font_name = self.font_var.get()
+            font_size = self.font_size_var.get()
+            use_emoji = self.use_emoji_var.get()
+            bg_style = self.bg_style_var.get()
+            
+            # 生成视频
+            generator = VideoGenerator()
+            output_path = loop.run_until_complete(
+                generator.generate_text_video(
+                    script_segments=test_segments,
+                    font_name=font_name,
+                    font_size=font_size,
+                    use_emoji=use_emoji,
+                    bg_style=bg_style,
+                    output_name=f"video_{asyncio.get_event_loop().time():.0f}.mp4"
+                )
+            )
+            
+            # 显示结果
+            result = f"✅ 视频生成成功！\n\n"
+            result += f"📁 保存位置：\n{output_path}\n\n"
+            result += f"⚙️ 使用参数：\n"
+            result += f"- 字体：{font_name}\n"
+            result += f"- 字体大小：{font_size}\n"
+            result += f"- 背景：{bg_style}\n"
+            result += f"- 表情包：{'开启' if use_emoji else '关闭'}\n\n"
+            result += f"💡 提示：视频已保存到data/videos目录"
+            
+            self.result_text.delete("1.0", "end")
+            self.result_text.insert("1.0", result)
+            
+        except Exception as e:
+            self.result_text.delete("1.0", "end")
+            self.result_text.insert("1.0", f"❌ 生成失败：{str(e)}")
+            import traceback
+            traceback.print_exc()
+        
+        finally:
+            # 恢复按钮
+            self.generate_btn.configure(state="normal", text="🎬 生成视频")
+            if loop:
+                loop.close()
     
     def _publish_video(self):
         """发布视频"""
