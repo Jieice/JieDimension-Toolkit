@@ -186,8 +186,20 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
         ctk.CTkOptionMenu(frame, variable=self.bg_style_var, values=["渐变", "纯色", "自定义图片"]).grid(row=6, column=1, padx=15, pady=5, sticky="w")
         
         # 表情包开关
-        self.use_emoji_var = ctk.BooleanVar(value=True)
-        ctk.CTkCheckBox(frame, text="添加表情包装饰", variable=self.use_emoji_var).grid(row=7, column=0, columnspan=2, padx=15, pady=(5, 15), sticky="w")
+        self.use_emoji_var = ctk.BooleanVar(value=False)  # 默认关闭（因为还没素材）
+        ctk.CTkCheckBox(frame, text="添加表情包装饰", variable=self.use_emoji_var).grid(row=7, column=0, columnspan=2, padx=15, pady=5, sticky="w")
+        
+        # 素材库管理按钮
+        asset_btn = ctk.CTkButton(
+            frame,
+            text="📦 管理素材库",
+            command=self._open_asset_manager,
+            width=120,
+            height=30,
+            fg_color="transparent",
+            border_width=1
+        )
+        asset_btn.grid(row=8, column=0, columnspan=2, padx=15, pady=(5, 15))
     
     def _create_publish_section(self):
         """创建发布设置区域"""
@@ -438,10 +450,22 @@ class VideoProductionTab(ctk.CTkScrollableFrame):
             if loop:
                 loop.close()
     
+    def _open_asset_manager(self):
+        """打开素材库管理"""
+        from tkinter import filedialog
+        import os
+        
+        # 打开素材目录
+        asset_dir = os.path.abspath("data/assets")
+        if os.path.exists(asset_dir):
+            os.startfile(asset_dir)
+            self.result_text.delete("1.0", "end")
+            self.result_text.insert("1.0", f"📦 素材库已打开：\n{asset_dir}\n\n请将素材放到对应文件夹：\n\nemojis/ - 表情包\nbackgrounds/ - 背景图\nmusic/ - 背景音乐\n\n支持的格式：\nPNG、JPG、MP3")
+        else:
+            messagebox.showwarning("提示", "素材目录不存在")
+    
     def _publish_video(self):
         """发布视频"""
         self.result_text.delete("1.0", "end")
-        self.result_text.insert("1.0", "🚀 正在发布视频...\n请稍候...")
-        
-        # TODO: 实际发布逻辑
+        self.result_text.insert("1.0", "🚀 正在发布视频...\n功能开发中...")
 
