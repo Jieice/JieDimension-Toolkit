@@ -41,9 +41,9 @@ class MainWindow(ctk.CTk):
         # 默认显示仪表板
         self.show_dashboard()
         
-        # 创建浮动AI助手
-        self.floating_ai = None
-        self.after(1000, self._create_floating_ai)  # 延迟1秒创建
+        # 内嵌AI助手
+        self.ai_assistant_frame = None
+        self.ai_visible = False
         
         # 窗口关闭事件
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
@@ -86,7 +86,7 @@ class MainWindow(ctk.CTk):
         
         # Logo 区域
         logo_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        logo_frame.grid(row=0, column=0, padx=20, pady=(30, 20), sticky="ew")
+        logo_frame.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="ew")
         
         logo_label = ctk.CTkLabel(
             logo_frame,
@@ -103,9 +103,21 @@ class MainWindow(ctk.CTk):
         )
         version_label.pack()
         
+        # AI助手按钮（顶部）
+        ai_btn = ctk.CTkButton(
+            self.sidebar,
+            text="🤖 AI助手",
+            command=self.toggle_ai_assistant,
+            height=45,
+            font=ctk.CTkFont(size=15, weight="bold"),
+            fg_color=("blue", "darkblue"),
+            hover_color=("lightblue", "navy")
+        )
+        ai_btn.grid(row=1, column=0, padx=15, pady=10, sticky="ew")
+        
         # 分隔线
         separator = ctk.CTkFrame(self.sidebar, height=2, fg_color="gray30")
-        separator.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        separator.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
         
         # 菜单按钮和分组状态
         self.menu_buttons = []
@@ -132,7 +144,7 @@ class MainWindow(ctk.CTk):
             ("⚙️ 设置", self.show_settings, "工具"),
         ]
         
-        current_row = 2
+        current_row = 3  # 从3开始，因为0=logo, 1=AI按钮, 2=分隔线
         current_group = None
         
         for item in menus:
@@ -560,26 +572,52 @@ class MainWindow(ctk.CTk):
             )
             error_label.place(relx=0.5, rely=0.5, anchor="center")
     
-    def _create_floating_ai(self):
-        """创建浮动AI助手"""
+    def toggle_ai_assistant(self):
+        """切换AI助手显示/隐藏"""
+        if self.ai_visible:
+            # 隐藏
+            if self.ai_assistant_frame:
+                self.ai_assistant_frame.place_forget()
+            self.ai_visible = False
+        else:
+            # 显示
+            if not self.ai_assistant_frame:
+                self._create_embedded_ai()
+            
+            # 定位到右下角（在主窗口内）
+            self.ai_assistant_frame.place(
+                relx=1.0,
+                rely=1.0,
+                anchor="se",
+                x=-20,  # 距离右边20px
+                y=-20   # 距离底部20px
+            )
+            self.ai_visible = True
+            self.ai_assistant_frame.lift()  # 置顶
+    
+    def _create_embedded_ai(self):
+        """创建内嵌AI助手"""
         try:
-            from ui.floating_ai_assistant import FloatingAIAssistant
-            self.floating_ai = FloatingAIAssistant(self)
+            from ui.ai_chat_window import AIChatWindow
+            
+            # 创建容器框架
+            self.ai_assistant_frame = ctk.CTkFrame(
+                self,
+                width=380,
+                height=550,
+                corner_radius=10
+            )
+            
+            # 创建聊天组件
+            chat = AIChatWindow(self.ai_assistant_frame)
+            chat.pack(fill="both", expand=True)
+            
         except Exception as e:
-            print(f"创建浮动AI助手失败：{e}")
+            print(f"创建AI助手失败：{e}")
     
     def show_ai_assistant(self):
-        """显示/聚焦AI助手"""
-        if self.floating_ai and not self.floating_ai.winfo_exists():
-            # 窗口被关闭了，重新创建
-            self._create_floating_ai()
-        
-        if self.floating_ai:
-            self.floating_ai.show()  # 显示并置顶
-            self.floating_ai.focus()  # 聚焦
-        else:
-            # 如果创建失败，显示错误
-            messagebox.showwarning("提示", "AI助手窗口创建失败")
+        """兼容旧菜单调用"""
+        self.toggle_ai_assistant()
     
     def show_api_config(self):
         """显示API配置"""
