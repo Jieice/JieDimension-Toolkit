@@ -269,18 +269,26 @@ if not errorlevel 1 (
 )
 
 :start_update
-echo ✓ 主程序已退出
+echo [OK] 主程序已退出
 echo.
 echo 正在备份旧版本...
 
-REM 备份旧版本
+REM 备份旧版本（含用户数据，回滚时才能完整还原）
 if exist "{target_dir}\\backup" rmdir /s /q "{target_dir}\\backup"
 mkdir "{target_dir}\\backup" 2>nul
 if exist "{exe_path}" (
     copy "{exe_path}" "{target_dir}\\backup\\" > nul 2>&1
-    echo ✓ 旧版本已备份
+    echo [OK] 旧版本程序已备份
 ) else (
-    echo ! 未找到旧版本exe文件
+    echo [!] 未找到旧版本exe文件
+)
+if exist "{target_dir}\\data" (
+    xcopy /E /Y /I "{target_dir}\\data" "{target_dir}\\backup\\data\\" > nul 2>&1
+    echo [OK] 数据目录已备份
+)
+if exist "{target_dir}\\config" (
+    xcopy /E /Y /I "{target_dir}\\config" "{target_dir}\\backup\\config\\" > nul 2>&1
+    echo [OK] 配置目录已备份
 )
 echo.
 
@@ -288,22 +296,30 @@ echo 正在复制新文件...
 REM 复制新文件（根据解压后的目录结构）
 xcopy /E /Y /I "{temp_dir}\\*" "{target_dir}\\" > nul 2>&1
 if errorlevel 1 (
-    echo ✗ 复制文件失败！
+    echo [X] 复制文件失败！
     echo.
     echo 正在恢复备份...
     if exist "{target_dir}\\backup\\JieDimension-Toolkit.exe" (
         copy "{target_dir}\\backup\\JieDimension-Toolkit.exe" "{target_dir}\\" > nul
-        echo ✓ 已恢复旧版本
+        echo [OK] 程序已回滚
+    )
+    if exist "{target_dir}\\backup\\data" (
+        xcopy /E /Y /I "{target_dir}\\backup\\data" "{target_dir}\\data\\" > nul 2>&1
+        echo [OK] 数据已回滚
+    )
+    if exist "{target_dir}\\backup\\config" (
+        xcopy /E /Y /I "{target_dir}\\backup\\config" "{target_dir}\\config\\" > nul 2>&1
+        echo [OK] 配置已回滚
     )
     goto error_end
 )
-echo ✓ 新文件复制完成
+echo [OK] 新文件复制完成
 echo.
 
 echo 正在清理临时文件...
 REM 清理临时文件
 rmdir /s /q "{temp_dir}" > nul 2>&1
-echo ✓ 清理完成
+echo [OK] 清理完成
 echo.
 
 echo ========================================
@@ -314,7 +330,7 @@ timeout /t 2 /nobreak > nul
 
 REM 重启应用
 start "" "{exe_path}"
-echo ✓ 应用已重启
+echo [OK] 应用已重启
 echo.
 
 REM 3秒后自动关闭
@@ -328,7 +344,10 @@ pause > nul
 exit
 '''
         
-        with open(script_path, 'w', encoding='gbk') as f:
+        # bat 由 cmd.exe 以本地代码页(中文系统为 GBK)执行，所以必须按 GBK 落盘。
+        # errors='replace' 是保险：万一以后模板里混进 GBK 表示不了的字符（比如 emoji），
+        # 也只是那几个字符变成 '?'，而不是整个更新流程崩掉。
+        with open(script_path, 'w', encoding='gbk', errors='replace') as f:
             f.write(script_content)
     
     def auto_update(self, progress_callback: Optional[Callable] = None) -> bool:
