@@ -53,6 +53,13 @@ backup/
 
 # 配置文件（加密）
 config/credentials.enc
+config/.auth_key
+
+# 登录态与凭证（绝不入库）
+*cookies*.json
+data/*.db
+data/*.db-journal
+data/*.db-wal
 
 # PyInstaller
 *.spec
