@@ -89,10 +89,13 @@ class Database:
                 schema_path = get_base_path() / "data" / "schema.sql"
             
             if not schema_path.exists():
-                logger.warning(f"⚠️ Schema文件不存在: {schema_path}")
-                logger.info("将使用内置的默认表结构")
-                # 这里可以添加默认的表结构SQL
-                return
+                # 这里原来只打一条 warning 就 return，于是 connect() 会"成功"返回一个空库，
+                # 直到业务代码第一次查表才炸 "no such table: products"——
+                # 报错点离真正的原因很远，很难排查。宁可在这里就失败。
+                raise FileNotFoundError(
+                    f"数据库表结构文件缺失: {schema_path}\n"
+                    f"data/schema.sql 是初始化数据库的必需文件，请确认它随程序一起分发。"
+                )
             
             # 读取并执行schema
             with open(schema_path, "r", encoding="utf-8") as f:
