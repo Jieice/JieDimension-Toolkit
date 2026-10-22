@@ -14,6 +14,7 @@ import re
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 import httpx
 
 # Gemini API支持
@@ -66,6 +67,29 @@ def clean_ai_output(text: str) -> str:
     cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
     
     return cleaned
+
+
+def _load_settings_file() -> dict:
+    """
+    读取设置界面保存的 config/settings.json
+
+    设置界面把密钥写在这里，引擎需要能读到，否则用户配了也用不上。
+    读不到就返回空字典，不影响引擎按环境变量工作。
+    """
+    candidates = [
+        Path(__file__).resolve().parent.parent / "config" / "settings.json",
+        Path.cwd() / "config" / "settings.json",
+    ]
+    for path in candidates:
+        try:
+            if path.exists():
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+        except Exception as e:
+            logger.warning(f"⚠️ 读取设置文件失败 {path}: {e}")
+    return {}
 
 
 class TaskComplexity(Enum):
@@ -144,17 +168,23 @@ class AIEngine:
     def __init__(self, config: Optional[AIConfig] = None):
         """初始化AI引擎"""
         self.config = config or AIConfig()
-        
-        # 从环境变量加载API密钥（如果未在config中设置）
-        if not self.config.gemini_api_key:
-            self.config.gemini_api_key = os.getenv('GEMINI_API_KEY')
-        if not self.config.claude_api_key:
-            self.config.claude_api_key = os.getenv('CLAUDE_API_KEY')
-        if not self.config.ernie_api_key:
-            self.config.ernie_api_key = os.getenv('ERNIE_API_KEY')
-        if not self.config.ernie_secret_key:
-            self.config.ernie_secret_key = os.getenv('ERNIE_SECRET_KEY')
-        
+
+        # 密钥来源优先级：传入的config > 环境变量 > settings.json（设置界面保存的）
+        settings = _load_settings_file()
+        for field in ('gemini_api_key', 'claude_api_key',
+                      'ernie_api_key', 'ernie_secret_key'):
+            if getattr(self.config, field):
+                continue  # 调用方已显式指定，不覆盖
+            value = os.getenv(field.upper()) or settings.get(field)
+            if value:
+                setattr(self.config, field, value)
+
+        # Ollama地址也跟随设置界面
+        if settings.get('ollama_url'):
+            self.config.ollama_url = settings['ollama_url']
+        if settings.get('ai_model'):
+            self.config.ollama_model = settings['ai_model']
+
         # 初始化Gemini
         self.gemini_model = None
         if GEMINI_AVAILABLE and self.config.gemini_api_key:
